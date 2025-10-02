@@ -13,16 +13,11 @@
     <!-- لیست پخش‌های فعال -->
     <div class="col-lg-4">
         <div class="card stats-card h-100">
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-info text-white">
                 <h5 class="mb-0">
                     <i class="bi bi-list-ul"></i> پخش‌های فعال
+                    <span class="badge bg-warning float-end" id="connectionStatus">در حال اتصال...</span>
                 </h5>
-                <div>
-                    <span class="badge bg-warning me-2" id="connectionStatus">در حال اتصال...</span>
-                    <button class="btn btn-sm btn-light" id="refreshStreamsBtn" title="به روزرسانی لیست">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                </div>
             </div>
             <div class="card-body">
                 <div class="mb-3">
@@ -46,7 +41,7 @@
                     <div class="alert alert-warning">
                         <small>
                             <i class="bi bi-lightbulb"></i>
-                            <strong>توجه:</strong> لیست پخش‌ها هر 10 ثانیه به روز می‌شود. برای مشاهده، روی دکمه "مشاهده" در کارت پخش مورد نظر کلیک کنید.
+                            <strong>توجه:</strong> برای مشاهده، روی دکمه "مشاهده" در کارت پخش مورد نظر کلیک کنید.
                         </small>
                     </div>
                 </div>

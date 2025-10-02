@@ -31,8 +31,8 @@
     {
         public int TotalViewers { get; set; }
         public int ActiveStreams { get; set; }
-        public DateTime ServerStartTime { get; set; } = DateTime.UtcNow;
-        public TimeSpan Uptime => DateTime.UtcNow - ServerStartTime;
+        public DateTime ServerStartTime { get; set; }
+        public TimeSpan Uptime { get; set; }
     }
 
     public class HomeViewModel

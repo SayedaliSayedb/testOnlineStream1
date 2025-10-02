@@ -21,21 +21,33 @@ namespace WebApplication1.Controllers
         [HttpGet("list")]
         public IActionResult GetStreams()
         {
-            var hub = _hubContext.GetHub<WebRTCHub>();
-            var streams = hub?.GetAvailableStreams() ?? new List<StreamInfo>();
-
-            // فیلتر کردن استریم‌های فعال
-            var activeStreams = streams.Where(s => s.IsLive).ToList();
-
-            return Ok(activeStreams);
+            try
+            {
+                var hub = new WebRTCHub();
+                var streams = hub.GetAvailableStreams();
+                return Ok(streams);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new List<StreamInfo>());
+            }
         }
+
 
         [HttpGet("stats")]
         public IActionResult GetStats()
         {
-            var hub = _hubContext.GetHub<WebRTCHub>();
-            var stats = hub?.GetStats() ?? new StreamStats();
-            return Ok(stats);
+            try
+            {
+                var hub = new WebRTCHub();
+                var stats = hub.GetStats();
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting stats");
+                return Ok(new StreamStats());
+            }
         }
 
         [HttpPost("create")]
@@ -43,7 +55,6 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                // این فقط برای API است، در حالت عولی از WebSocket استفاده می‌شود
                 return Ok(new { message = "برای ایجاد استریم از WebSocket استفاده کنید" });
             }
             catch (Exception ex)

@@ -6,7 +6,6 @@
         this.connection = null;
         this.isWatching = false;
         this.streamerConnectionId = null;
-        this.streamListRefreshInterval = null;
 
         this.initializeElements();
         this.initializeSignalR();
@@ -23,7 +22,6 @@
         this.viewerCount = document.getElementById('viewerCount');
         this.streamStatus = document.getElementById('streamStatus');
         this.connectionStatus = document.getElementById('connectionStatus');
-        this.refreshStreamsBtn = document.getElementById('refreshStreamsBtn');
     }
 
     async initializeSignalR() {
@@ -39,7 +37,7 @@
             this.updateConnectionStatus('connected', 'متصل به سرور');
 
             this.setupHubListeners();
-            this.startStreamListRefresher();
+            this.loadAvailableStreams();
 
         } catch (err) {
             console.error("❌ Viewer connection error:", err);
@@ -106,62 +104,17 @@
     setupEventListeners() {
         this.watchStreamBtn.addEventListener('click', () => this.watchSelectedStream());
         this.leaveStreamBtn.addEventListener('click', () => this.leaveStream());
-
-        // اضافه کردن دکمه رفرش دستی
-        if (this.refreshStreamsBtn) {
-            this.refreshStreamsBtn.addEventListener('click', () => this.refreshStreamList());
-        }
-    }
-
-    // شروع به روزرسانی دوره‌ای لیست پخش‌ها
-    startStreamListRefresher() {
-        // درخواست اولیه
-        this.requestStreamList();
-
-        // به روزرسانی دوره‌ای هر 10 ثانیه
-        this.streamListRefreshInterval = setInterval(() => {
-            this.requestStreamList();
-        }, 10000);
-    }
-
-    // درخواست لیست پخش‌ها از سرور
-    async requestStreamList() {
-        try {
-            if (this.connection && this.connection.state === 'Connected') {
-                await this.connection.invoke("RequestStreamList");
-            }
-        } catch (error) {
-            console.error("Error requesting stream list:", error);
-        }
-    }
-
-    // رفرش دستی لیست
-    async refreshStreamList() {
-        try {
-            this.showNotification("در حال به روزرسانی لیست پخش‌ها...", "info");
-            await this.requestStreamList();
-
-            // همچنین از API هم درخواست بده برای اطمینان
-            await this.loadAvailableStreams();
-
-        } catch (error) {
-            console.error("Error refreshing stream list:", error);
-        }
     }
 
     async loadAvailableStreams() {
         try {
-            console.log("🔄 Loading available streams from API...");
+            console.log("🔄 Loading available streams...");
             const response = await fetch('/api/stream/list');
-            if (response.ok) {
-                const streams = await response.json();
-                console.log("Loaded streams from API:", streams);
-                this.updateStreamsList(streams);
-            } else {
-                console.error("API response not OK:", response.status);
-            }
+            const streams = await response.json();
+            console.log("Loaded streams:", streams);
+            this.updateStreamsList(streams);
         } catch (error) {
-            console.error('Error loading streams from API:', error);
+            console.error('Error loading streams:', error);
         }
     }
 
@@ -173,20 +126,12 @@
                 <div class="text-center py-4">
                     <i class="bi bi-camera-video-off display-4 text-muted mb-3"></i>
                     <p class="text-muted">هیچ پخش زنده‌ای در حال حاضر فعال نیست</p>
-                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="viewer.refreshStreamList()">
-                        <i class="bi bi-arrow-clockwise"></i> به روزرسانی
-                    </button>
                 </div>
             `;
             return;
         }
 
-        // فیلتر کردن پخش جاری از لیست (اگر در حال تماشا هستیم)
-        const filteredStreams = this.isWatching && this.currentStreamId
-            ? streams.filter(stream => stream.streamId !== this.currentStreamId)
-            : streams;
-
-        const html = filteredStreams.map(stream => `
+        const html = streams.map(stream => `
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card stream-card h-100">
                     <div class="card-body">
@@ -209,21 +154,6 @@
         `).join('');
 
         container.innerHTML = html;
-
-        // اگر در حال تماشا هستیم و پخش‌های دیگری وجود دارند، یک بخش جداگانه نشان بده
-        if (this.isWatching && this.currentStreamId && filteredStreams.length > 0) {
-            const currentStream = streams.find(s => s.streamId === this.currentStreamId);
-            if (currentStream) {
-                container.innerHTML = `
-                    <div class="alert alert-info mb-3">
-                        <i class="bi bi-info-circle"></i>
-                        در حال مشاهده: <strong>${this.escapeHtml(currentStream.title)}</strong>
-                    </div>
-                    <h6 class="text-muted mb-3">پخش‌های زنده دیگر:</h6>
-                    ${html}
-                `;
-            }
-        }
     }
 
     escapeHtml(unsafe) {
@@ -251,6 +181,7 @@
     }
 
     async watchSelectedStream() {
+        // این تابع برای حالت انتخاب از لیست رادیویی است
         const selectedStream = document.querySelector('input[name="streamSelect"]:checked');
         if (selectedStream) {
             await this.watchStream(selectedStream.value);
@@ -268,8 +199,10 @@
         try {
             console.log("🔄 Initiating WebRTC connection with streamer:", this.streamerConnectionId);
 
+            // ایجاد اتصال Peer
             await this.createPeerConnection();
 
+            // ایجاد و ارسال offer
             const offer = await this.peerConnection.createOffer({
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true
@@ -301,6 +234,7 @@
 
         this.peerConnection = new RTCPeerConnection(configuration);
 
+        // مدیریت trackهای دریافتی
         this.peerConnection.ontrack = (event) => {
             console.log("🎬 Received remote track:", event.track.kind);
             if (event.streams && event.streams[0]) {
@@ -308,12 +242,14 @@
                 this.remoteVideo.srcObject = this.remoteStream;
                 console.log("✅ Remote video stream set");
 
+                // پخش خودکار ویدیو
                 this.remoteVideo.play().catch(e => {
                     console.error("❌ Error playing video:", e);
                 });
             }
         };
 
+        // مدیریت ICE candidates
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate && this.streamerConnectionId) {
                 console.log("📤 Sending ICE candidate");
@@ -321,6 +257,7 @@
             }
         };
 
+        // مدیریت تغییرات وضعیت اتصال
         this.peerConnection.onconnectionstatechange = () => {
             const state = this.peerConnection.connectionState;
             console.log("🔗 Peer connection state:", state);
@@ -343,6 +280,14 @@
                     this.streamStatus.className = 'badge bg-warning';
                     break;
             }
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log("🧊 ICE connection state:", this.peerConnection.iceConnectionState);
+        };
+
+        this.peerConnection.onsignalingstatechange = () => {
+            console.log("📡 Signaling state:", this.peerConnection.signalingState);
         };
 
         console.log("✅ Peer connection created successfully");
@@ -369,6 +314,11 @@
                     console.log("📥 Received ICE candidate");
                     const candidate = JSON.parse(data);
                     await this.peerConnection.addIceCandidate(candidate);
+                    break;
+
+                case 'offer':
+                    // بینندگان نباید offer دریافت کنند
+                    console.warn("Unexpected offer received");
                     break;
 
                 default:
@@ -408,9 +358,6 @@
         this.updateUI(false);
         this.clearStreamInfo();
         this.updateConnectionStatus('disconnected', 'قطع شده');
-
-        // پس از ترک پخش، لیست را به روز کن
-        this.requestStreamList();
 
         console.log("✅ Left stream successfully");
     }
@@ -483,6 +430,7 @@
             'info': 'alert-info'
         }[type] || 'alert-info';
 
+        // حذف نوتیفیکیشن‌های قبلی
         const existingAlerts = document.querySelectorAll('.alert.position-fixed');
         existingAlerts.forEach(alert => alert.remove());
 
@@ -515,27 +463,10 @@
         };
         return icons[type] || 'bi-info-circle-fill';
     }
-
-    // تمیز کردن منابع هنگام بسته شدن صفحه
-    destroy() {
-        if (this.streamListRefreshInterval) {
-            clearInterval(this.streamListRefreshInterval);
-        }
-        if (this.connection) {
-            this.connection.stop();
-        }
-    }
 }
 
-// راه‌اندازی بیننده و مدیریت رویداد unload
+// راه‌اندازی بیننده
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 Initializing WebRTC Viewer...");
     window.viewer = new WebRTCViewer();
-
-    // تمیز کردن منابع هنگام بسته شدن صفحه
-    window.addEventListener('beforeunload', () => {
-        if (window.viewer) {
-            window.viewer.destroy();
-        }
-    });
 });

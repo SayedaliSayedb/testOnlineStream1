@@ -40,7 +40,10 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowAll");
 app.UseAuthorization();
-
+app.MapControllerRoute(
+    name: "fullscreen",
+    pattern: "fullscreen/{action=Index}",
+    defaults: new { controller = "FullScreen" });
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

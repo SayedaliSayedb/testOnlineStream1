@@ -84,8 +84,8 @@
             // دریافت دسترسی به دوربین و میکروفون
             this.localStream = await navigator.mediaDevices.getUserMedia({
                 video: {
-                    width: { ideal: 1080 },
-                    height: { ideal: 1920 },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
                     frameRate: { ideal: 30 }
                 },
                 audio: true

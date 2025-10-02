@@ -10,7 +10,7 @@ namespace WebApplication1.Hubs
         private static readonly ConcurrentDictionary<string, StreamInfo> _activeStreams = new();
         private static readonly ConcurrentDictionary<string, string> _userStreams = new();
         private static readonly ConcurrentDictionary<string, string> _streamViewers = new();
-        private static readonly StreamStats _stats = new();
+        private static readonly DateTime _serverStartTime = DateTime.UtcNow;
 
         public override async Task OnConnectedAsync()
         {
@@ -18,8 +18,8 @@ namespace WebApplication1.Hubs
             await Clients.Caller.SendAsync("Connected", Context.ConnectionId);
 
             // ارسال لیست پخش‌های فعال به کاربر جدید
-            await Clients.Caller.SendAsync("StreamListUpdated", GetAvailableStreams());
-            await UpdateStats();
+            var streams = GetAvailableStreams();
+            await Clients.Caller.SendAsync("StreamListUpdated", streams);
 
             await base.OnConnectedAsync();
         }
@@ -29,9 +29,32 @@ namespace WebApplication1.Hubs
             Console.WriteLine($"❌ Client disconnected: {Context.ConnectionId}");
 
             // اگر کاربر یک استریمر بود
-            if (_userStreams.TryGetValue(Context.ConnectionId, out var streamId))
+            if (_userStreams.TryRemove(Context.ConnectionId, out var streamId))
             {
-                await StopStreaming();
+                if (_activeStreams.TryRemove(streamId, out var stream))
+                {
+                    // به همه بینندگان اطلاع بده که استریم تمام شد
+                    try
+                    {
+                        await Clients.Group(streamId).SendAsync("StreamEnded", streamId);
+
+                        // بینندگان را از گروه حذف کن
+                        foreach (var viewer in stream.Viewers)
+                        {
+                            await Groups.RemoveFromGroupAsync(viewer.ConnectionId, streamId);
+                            _streamViewers.TryRemove(viewer.ConnectionId, out _);
+                        }
+
+                        Console.WriteLine($"⏹ Stream stopped: {streamId}");
+
+                        // به همه کاربران اطلاع بده
+                        await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
             }
 
             // اگر کاربر یک بیننده بود
@@ -39,14 +62,18 @@ namespace WebApplication1.Hubs
             {
                 if (_activeStreams.TryGetValue(viewerStreamId, out var stream))
                 {
-                    stream.Viewers.RemoveAll(v => v.ConnectionId == Context.ConnectionId);
-                    stream.ViewerCount = stream.Viewers.Count;
-                    await Clients.Group(streamId).SendAsync("ViewerLeft", Context.ConnectionId);
-                    await UpdateStreamStats(streamId);
+                    var viewer = stream.Viewers.FirstOrDefault(v => v.ConnectionId == Context.ConnectionId);
+                    if (viewer != null)
+                    {
+                        stream.Viewers.Remove(viewer);
+                        stream.ViewerCount = stream.Viewers.Count;
+
+                        await Clients.Group(viewerStreamId).SendAsync("ViewerLeft", Context.ConnectionId);
+                        await UpdateStreamStats(viewerStreamId);
+                    }
                 }
             }
 
-            await UpdateStats();
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -59,7 +86,9 @@ namespace WebApplication1.Hubs
                 StreamerConnectionId = Context.ConnectionId,
                 Title = title,
                 StartTime = DateTime.UtcNow,
-                IsLive = true
+                IsLive = true,
+                ViewerCount = 0,
+                Viewers = new List<ViewerInfo>()
             };
 
             _activeStreams[streamId] = streamInfo;
@@ -71,9 +100,8 @@ namespace WebApplication1.Hubs
 
             await Clients.Caller.SendAsync("StreamStarted", streamId);
 
-            // ارسال به همه کاربران، حتی آن‌هایی که در گروه‌های دیگر هستند
-            await SendToAllUsers("StreamListUpdated", GetAvailableStreams());
-            await UpdateStats();
+            // اطلاع به همه کاربران
+            await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
 
             return streamId;
         }
@@ -84,10 +112,8 @@ namespace WebApplication1.Hubs
             {
                 if (_activeStreams.TryRemove(streamId, out var stream))
                 {
-                    // به همه بینندگان اطلاع بده که استریم تمام شد
-                    await Clients.Group(streamId).SendAsync("StreamEnded");
+                    await Clients.Group(streamId).SendAsync("StreamEnded", streamId);
 
-                    // بینندگان را از گروه حذف کن
                     foreach (var viewer in stream.Viewers)
                     {
                         await Groups.RemoveFromGroupAsync(viewer.ConnectionId, streamId);
@@ -95,10 +121,7 @@ namespace WebApplication1.Hubs
                     }
 
                     Console.WriteLine($"⏹ Stream stopped: {streamId}");
-
-                    // ارسال به همه کاربران
-                    await SendToAllUsers("StreamListUpdated", GetAvailableStreams());
-                    await UpdateStats();
+                    await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
                 }
             }
         }
@@ -107,11 +130,9 @@ namespace WebApplication1.Hubs
         {
             if (_activeStreams.TryGetValue(streamId, out var stream))
             {
-                // کاربر را به گروه استریم اضافه کن
                 await Groups.AddToGroupAsync(Context.ConnectionId, streamId);
                 _streamViewers[Context.ConnectionId] = streamId;
 
-                // بیننده جدید را اضافه کن
                 var viewer = new ViewerInfo
                 {
                     ConnectionId = Context.ConnectionId,
@@ -123,14 +144,13 @@ namespace WebApplication1.Hubs
                 stream.Viewers.Add(viewer);
                 stream.ViewerCount = stream.Viewers.Count;
 
+                // ارسال اطلاعات استریم به بیننده
                 await Clients.Caller.SendAsync("JoinedStream", stream);
+
                 await Clients.OthersInGroup(streamId).SendAsync("ViewerJoined", viewer);
                 await UpdateStreamStats(streamId);
 
-                Console.WriteLine($"👤 Viewer {viewerName} joined stream: {streamId}");
-
-                // ارسال لیست به روز شده به همه کاربران
-                await SendToAllUsers("StreamListUpdated", GetAvailableStreams());
+                Console.WriteLine($"👤 Viewer joined: {viewerName} to {streamId}");
             }
             else
             {
@@ -146,52 +166,34 @@ namespace WebApplication1.Hubs
 
                 if (_activeStreams.TryGetValue(streamId, out var stream))
                 {
-                    stream.Viewers.RemoveAll(v => v.ConnectionId == Context.ConnectionId);
-                    stream.ViewerCount = stream.Viewers.Count;
-
-                    await Clients.Group(streamId).SendAsync("ViewerLeft", Context.ConnectionId);
-                    await UpdateStreamStats(streamId);
+                    var viewer = stream.Viewers.FirstOrDefault(v => v.ConnectionId == Context.ConnectionId);
+                    if (viewer != null)
+                    {
+                        stream.Viewers.Remove(viewer);
+                        stream.ViewerCount = stream.Viewers.Count;
+                        await UpdateStreamStats(streamId);
+                    }
                 }
-
-                // ارسال لیست به روز شده به همه کاربران
-                await SendToAllUsers("StreamListUpdated", GetAvailableStreams());
             }
         }
 
-        // WebRTC Signaling Methods
+        // WebRTC Signaling
         public async Task SendSignal(string targetConnectionId, string type, string data)
         {
             try
             {
-                Console.WriteLine($"📡 Signal sent: {type} from {Context.ConnectionId} to {targetConnectionId}");
+                Console.WriteLine($"📡 Signal: {type} from {Context.ConnectionId} to {targetConnectionId}");
 
-                var signal = new WebRTCSignal
+                await Clients.Client(targetConnectionId).SendAsync("ReceiveSignal", new
                 {
-                    TargetConnectionId = targetConnectionId,
                     SenderConnectionId = Context.ConnectionId,
                     Type = type,
                     Data = data
-                };
-
-                await Clients.Client(targetConnectionId).SendAsync("ReceiveSignal", signal);
+                });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error sending signal: {ex.Message}");
-                await Clients.Caller.SendAsync("Error", "خطا در ارسال سیگنال");
-            }
-        }
-
-        // متد جدید برای ارسال به همه کاربران بدون در نظر گرفتن گروه
-        private async Task SendToAllUsers(string method, object data)
-        {
-            try
-            {
-                await Clients.All.SendAsync(method, data);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error sending to all users: {ex.Message}");
             }
         }
 
@@ -200,22 +202,22 @@ namespace WebApplication1.Hubs
             return _activeStreams.Values.Where(s => s.IsLive).ToList();
         }
 
-        public StreamInfo? GetStreamInfo(string streamId)
-        {
-            return _activeStreams.TryGetValue(streamId, out var stream) ? stream : null;
-        }
-
+        // اضافه کردن متد GetStats
         public StreamStats GetStats()
         {
-            _stats.TotalViewers = _streamViewers.Count;
-            _stats.ActiveStreams = _activeStreams.Count;
-            return _stats;
+            return new StreamStats
+            {
+                TotalViewers = _streamViewers.Count,
+                ActiveStreams = _activeStreams.Count,
+                ServerStartTime = _serverStartTime,
+                Uptime = DateTime.UtcNow - _serverStartTime
+            };
         }
 
-        private async Task UpdateStats()
+        public async Task RequestStreamList()
         {
-            var stats = GetStats();
-            await SendToAllUsers("StatsUpdated", stats);
+            var streams = GetAvailableStreams();
+            await Clients.Caller.SendAsync("StreamListUpdated", streams);
         }
 
         private async Task UpdateStreamStats(string streamId)
@@ -225,16 +227,9 @@ namespace WebApplication1.Hubs
                 await Clients.Group(streamId).SendAsync("StreamStatsUpdated", new
                 {
                     StreamId = streamId,
-                    ViewerCount = stream.ViewerCount,
-                    Viewers = stream.Viewers
+                    ViewerCount = stream.ViewerCount
                 });
             }
-        }
-
-        // متد جدید برای درخواست لیست پخش‌ها
-        public async Task RequestStreamList()
-        {
-            await Clients.Caller.SendAsync("StreamListUpdated", GetAvailableStreams());
         }
     }
 }

@@ -32,25 +32,34 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public IActionResult GetStreams()
         {
-            var hub = _hubContext.GetHub<WebRTCHub>();
-            if (hub != null)
+            try
             {
+                // ایجاد یک instance از هاب برای دسترسی به متدها
+                var hub = new WebRTCHub();
                 var streams = hub.GetAvailableStreams();
                 return Json(streams);
             }
-            return Json(new List<StreamInfo>());
+            catch (Exception ex)
+            {
+                return Json(new List<StreamInfo>());
+            }
         }
+
 
         [HttpGet]
         public IActionResult GetStats()
         {
-            var hub = _hubContext.GetHub<WebRTCHub>();
-            if (hub != null)
+            try
             {
+                // ایجاد یک instance از هاب برای دسترسی به متدها
+                var hub = new WebRTCHub();
                 var stats = hub.GetStats();
                 return Json(stats);
             }
-            return Json(new StreamStats());
+            catch (Exception ex)
+            {
+                return Json(new StreamStats());
+            }
         }
     }
 
