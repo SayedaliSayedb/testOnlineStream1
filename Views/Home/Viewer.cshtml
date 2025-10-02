@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "مشاهده پخش زنده - WebRTC";
+}
+
+<div class="row">
+    <div class="col-12 text-center mb-4">
+        <h1 class="text-white display-4 fw-bold">👁️ مشاهده پخش زنده</h1>
+        <p class="text-white-50 lead">پخش‌های زنده فعال را با تأخیر کم مشاهده کنید</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- لیست پخش‌های فعال -->
+    <div class="col-lg-4">
+        <div class="card stats-card h-100">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i> پخش‌های فعال
+                </h5>
+                <div>
+                    <span class="badge bg-warning me-2" id="connectionStatus">در حال اتصال...</span>
+                    <button class="btn btn-sm btn-light" id="refreshStreamsBtn" title="به روزرسانی لیست">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label for="viewerName" class="form-label">نام شما:</label>
+                        <input type="text" class="form-control" id="viewerName"
+                               placeholder="نام خود را وارد کنید" value="بیننده">
+                    </div>
+                </div>
+
+                <div id="streamsList" class="row">
+                    <div class="col-12 text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <p class="text-muted mt-2">در حال بارگذاری پخش‌ها...</p>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="alert alert-warning">
+                        <small>
+                            <i class="bi bi-lightbulb"></i>
+                            <strong>توجه:</strong> لیست پخش‌ها هر 10 ثانیه به روز می‌شود. برای مشاهده، روی دکمه "مشاهده" در کارت پخش مورد نظر کلیک کنید.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- پخش زنده -->
+    <div class="col-lg-8">
+        <div class="card stats-card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-play-circle"></i> پخش زنده
+                    <span id="streamStatus" class="badge bg-secondary float-end">آماده</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="video-container mb-3">
+                    <video id="remoteVideo" autoplay playsinline controls
+                           class="w-100" style="max-height: 500px; background: #000;">
+                        مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                    </video>
+                </div>
+
+                <div id="streamInfo">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-camera-video-off display-4"></i>
+                        <p>هیچ پخشی در حال مشاهده نیست</p>
+                        <small class="text-muted">برای شروع، یک پخش از لیست سمت راست انتخاب کنید</small>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">وضعیت اتصال:</label>
+                            <div>
+                                <span id="webrtcStatus" class="badge bg-secondary">منتظر</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">بینندگان:</label>
+                            <div>
+                                <span id="viewerCount" class="badge bg-info">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-3">
+                    <button id="watchStreamBtn" class="btn btn-success btn-stream" disabled>
+                        <i class="bi bi-play-fill"></i> مشاهده پخش انتخاب شده
+                    </button>
+                    <button id="leaveStreamBtn" class="btn btn-danger btn-stream" disabled>
+                        <i class="bi bi-x-circle"></i> ترک پخش
+                    </button>
+                </div>
+
+                <div class="mt-4">
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> راهنمای عیب‌یابی:</h6>
+                        <small>
+                            <ul class="mb-0">
+                                <li>اگر ویدیو نمایش داده نمی‌شود، صفحه را رفرش کنید</li>
+                                <li>از آخرین نسخه مرورگر استفاده کنید</li>
+                                <li>دسترسی دوربین و میکروفون را تأیید کنید</li>
+                                <li>اگر مشکل ادامه داشت، با پشتیبانی تماس بگیرید</li>
+                            </ul>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/webrtc-viewer.js"></script>
+
+    <script>
+        // اضافه کردن وضعیت WebRTC به صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            const webrtcStatus = document.getElementById('webrtcStatus');
+            if (webrtcStatus) {
+                webrtcStatus.textContent = 'منتظر اتصال';
+            }
+        });
+    </script>
+}
