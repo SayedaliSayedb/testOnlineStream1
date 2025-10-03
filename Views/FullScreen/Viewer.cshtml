@@ -514,7 +514,7 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- وضعیت اتصال -->
+@*         <!-- وضعیت اتصال -->
         <div id="connectionStatus" class="status-connecting">
             <i class="bi bi-wifi"></i> در حال اتصال...
         </div>
@@ -530,14 +530,13 @@
             <button class="control-btn exit" id="exitViewer" title="خروج">
                 <i class="bi bi-x-lg"></i>
             </button>
-        </div>
+        </div> *@
 
         <!-- ویدیوی اصلی -->
         <div id="mainVideoContainer">
             <video id="mainVideo" autoplay playsinline></video>
         </div>
 
-        <!-- لیست پخش‌ها -->
         <div id="streamsListContainer">
             <div class="streams-header">
                 <div class="streams-title">
@@ -549,11 +548,9 @@
                 </button>
             </div>
             <div class="streams-grid" id="streamsGrid">
-                <!-- پخش‌ها اینجا نمایش داده می‌شوند -->
             </div>
         </div>
 
-        <!-- صفحه خالی -->
         <div id="emptyState">
             <i class="bi bi-camera-video-off empty-icon"></i>
             <div class="empty-text">هیچ پخش زنده‌ای در حال حاضر فعال نیست</div>

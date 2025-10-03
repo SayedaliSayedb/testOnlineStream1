@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using WebApplication1.Models;
+using WebApplication1.Race;
+using WebApplication1.Race.Services;
 
 namespace WebApplication1.Hubs
 {
@@ -11,7 +13,10 @@ namespace WebApplication1.Hubs
         private static readonly ConcurrentDictionary<string, string> _userStreams = new();
         private static readonly ConcurrentDictionary<string, string> _streamViewers = new();
         private static readonly DateTime _serverStartTime = DateTime.UtcNow;
-
+        private readonly IQuizDataService _dataService;
+        private static readonly Dictionary<string, Participant> _participants = new();
+        private static QuizState _currentState = new();
+        private static bool _isInitialized = false;
         public override async Task OnConnectedAsync()
         {
             Console.WriteLine($"✅ Client connected: {Context.ConnectionId}");
@@ -57,6 +62,7 @@ namespace WebApplication1.Hubs
                 }
             }
 
+
             // اگر کاربر یک بیننده بود
             if (_streamViewers.TryRemove(Context.ConnectionId, out var viewerStreamId))
             {
@@ -75,6 +81,14 @@ namespace WebApplication1.Hubs
             }
 
             await base.OnDisconnectedAsync(exception);
+        }
+        private async Task InitializeFromStorage()
+        {
+            var savedState = await _dataService.GetQuizStateAsync();
+            if (savedState != null)
+            {
+                _currentState = savedState;
+            }
         }
 
         public async Task<string> StartStreaming(string title = "پخش زنده")
