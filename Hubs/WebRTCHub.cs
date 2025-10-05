@@ -60,13 +60,20 @@ namespace WebApplication1.Hubs
             {
                 if (_activeStreams.TryRemove(streamId, out var stream))
                 {
-                    await Clients.Group(streamId).SendAsync("StreamEnded", streamId);
-                    foreach (var viewer in stream.Viewers)
+                    try
                     {
-                        await Groups.RemoveFromGroupAsync(viewer.ConnectionId, streamId);
-                        _streamViewers.TryRemove(viewer.ConnectionId, out _);
+                        await Clients.Group(streamId).SendAsync("StreamEnded", streamId);
+                        foreach (var viewer in stream.Viewers)
+                        {
+                            await Groups.RemoveFromGroupAsync(viewer.ConnectionId, streamId);
+                            _streamViewers.TryRemove(viewer.ConnectionId, out _);
+                        }
+                        await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
                     }
-                    await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
+                    catch (Exception)
+                    {
+
+                    }
                 }
             }
 
