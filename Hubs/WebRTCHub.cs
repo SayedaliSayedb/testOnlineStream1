@@ -22,8 +22,6 @@ namespace WebApplication1.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            Console.WriteLine($"✅ Client connected: {Context.ConnectionId}");
-
             var userInfo = new UserInfo
             {
                 ConnectionId = Context.ConnectionId,
@@ -39,12 +37,10 @@ namespace WebApplication1.Hubs
 
             await Clients.Caller.SendAsync("Connected", Context.ConnectionId, userInfo);
 
-            // Send current settings
             await Clients.Caller.SendAsync("ContestSettingsUpdated", _contestSettings);
             await Clients.Caller.SendAsync("ChatStatusUpdated", _chatEnabled);
             await Clients.Caller.SendAsync("HeartsStatusUpdated", _heartsEnabled);
 
-            // Send active streams
             var streams = GetAvailableStreams();
             await Clients.Caller.SendAsync("StreamListUpdated", streams);
 
@@ -53,9 +49,6 @@ namespace WebApplication1.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            Console.WriteLine($"❌ Client disconnected: {Context.ConnectionId}");
-
-            // Handle streamer disconnect
             if (_userStreams.TryRemove(Context.ConnectionId, out var streamId))
             {
                 if (_activeStreams.TryRemove(streamId, out var stream))
@@ -77,7 +70,6 @@ namespace WebApplication1.Hubs
                 }
             }
 
-            // Handle viewer disconnect
             if (_streamViewers.TryRemove(Context.ConnectionId, out var viewerStreamId))
             {
                 if (_activeStreams.TryGetValue(viewerStreamId, out var stream))
@@ -95,8 +87,6 @@ namespace WebApplication1.Hubs
             _users.TryRemove(Context.ConnectionId, out _);
             await base.OnDisconnectedAsync(exception);
         }
-
-        // Streaming methods
         public async Task<string> StartStreaming(string title = "پخش زنده")
         {
             var streamId = Guid.NewGuid().ToString();
