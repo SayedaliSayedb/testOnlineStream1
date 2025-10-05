@@ -41,14 +41,14 @@
 
             await this.connection.start();
             console.log("✅ SignalR connection established");
-            this.updateConnectionStatus('connected', 'متصل به سرور');
+            this.updateConnectionStatus('connected', 'اتصالمون وصله');
 
             // درخواست لیست استریم‌ها پس از اتصال
             await this.requestStreamList();
 
         } catch (error) {
             console.error("❌ SignalR connection failed:", error);
-            this.updateConnectionStatus('error', 'خطا در اتصال');
+            this.updateConnectionStatus('error', 'قطع شد!');
         }
     }
 
@@ -84,7 +84,7 @@
 
         this.connection.onreconnected(() => {
             console.log("✅ Reconnected");
-            this.updateConnectionStatus('connected', 'متصل به سرور');
+            this.updateConnectionStatus('connected', 'اتصالمون وصله');
             this.requestStreamList();
         });
 

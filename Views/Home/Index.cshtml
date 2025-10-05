@@ -1,239 +1,836 @@
 ﻿@{
-    ViewData["Title"] = "پخش زنده";
+    ViewData["Title"] = "پنل مدیریت - سیستم پخش زنده";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12 text-center mb-4">
-            <h1 class="display-4 text-primary">🎥 سیستم پخش زنده</h1>
-            <p class="lead">مدیریت و مانیتورینگ پخش زنده</p>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>پنل مدیریت - سیستم پخش زنده</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">📊 آمار پخش</h5>
+        :root {
+            --primary-font: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            font-family: var(--primary-font);
+        }
+
+        body {
+            background: #f8f9fa;
+        }
+
+        .admin-container {
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: bold;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-message {
+            border-right: 3px solid #007bff;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .btn-toggle {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h1 class="display-4 text-primary">🎮 پنل مدیریت مسابقه</h1>
+                <p class="lead">مدیریت کاربران، چت و مسابقه</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- کنترل‌های اصلی -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">⚙️ کنترل‌های سریع</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button id="toggleChatBtn" class="btn btn-success btn-toggle">
+                                <i class="bi bi-chat-dots"></i> چت: فعال
+                            </button>
+                            <button id="toggleHeartsBtn" class="btn btn-success btn-toggle">
+                                <i class="bi bi-heart"></i> قلب: فعال
+                            </button>
+                            <button id="clearChatBtn" class="btn btn-warning">
+                                <i class="bi bi-trash"></i> پاک کردن تاریخچه چت
+                            </button>
+                            <button id="refreshDataBtn" class="btn btn-info">
+                                <i class="bi bi-arrow-clockwise"></i> بروزرسانی داده‌ها
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div id="statsContainer">
+
+                <!-- آمار سیستم -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">📊 آمار سیستم</h5>
+                    </div>
+                    <div class="card-body">
                         <div class="row text-center">
-                            <div class="col-md-3 mb-3">
-                                <div class="p-3 bg-light rounded">
-                                    <h3 id="viewerCount" class="text-info">0</h3>
-                                    <small class="text-muted">بینندگان آنلاین</small>
+                            <div class="col-6 mb-3">
+                                <div class="stats-card">
+                                    <div class="stats-number text-primary" id="onlineUsersCount">0</div>
+                                    <div class="stats-label">کاربران آنلاین</div>
                                 </div>
                             </div>
-                            <div class="col-md-3 mb-3">
-                                <div class="p-3 bg-light rounded">
-                                    <h3 id="streamStatus" class="text-success">آفلاین</h3>
-                                    <small class="text-muted">وضعیت پخش</small>
+                            <div class="col-6 mb-3">
+                                <div class="stats-card">
+                                    <div class="stats-number text-success" id="activeStreamsCount">0</div>
+                                    <div class="stats-label">پخش‌های فعال</div>
                                 </div>
                             </div>
-                            <div class="col-md-3 mb-3">
-                                <div class="p-3 bg-light rounded">
-                                    <h3 id="uptime" class="text-warning">00:00:00</h3>
-                                    <small class="text-muted">مدت پخش</small>
+                            <div class="col-6 mb-3">
+                                <div class="stats-card">
+                                    <div class="stats-number text-warning" id="totalViewersCount">0</div>
+                                    <div class="stats-label">بینندگان کل</div>
                                 </div>
                             </div>
-                            <div class="col-md-3 mb-3">
-                                <div class="p-3 bg-light rounded">
-                                    <h3 id="serverTime" class="text-primary">--:--:--</h3>
-                                    <small class="text-muted">زمان سرور</small>
+                            <div class="col-6 mb-3">
+                                <div class="stats-card">
+                                    <div class="stats-number text-info" id="serverUptime">00:00</div>
+                                    <div class="stats-label">مدت فعالیت سرور</div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تنظیمات مسابقه -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">🎯 تنظیمات مسابقه</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">زمان شروع مسابقه:</label>
+                            <input type="datetime-local" id="contestStartTime" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">تعداد قلب اولیه:</label>
+                            <input type="number" id="initialHearts" class="form-control" value="3" min="1" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">عنوان مسابقه:</label>
+                            <input type="text" id="contestTitle" class="form-control" value="مسابقه پخش زنده">
+                        </div>
+                        <button id="updateContestSettings" class="btn btn-primary w-100">
+                            <i class="bi bi-save"></i> ذخیره تنظیمات
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مدیریت کاربران -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people-fill"></i> مدیریت کاربران
+                            <span class="badge bg-warning float-end" id="usersCount">0 کاربر</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>نام کاربر</th>
+                                        <th>اتصال</th>
+                                        <th>امتیاز</th>
+                                        <th>قلب</th>
+                                        <th>وضعیت</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">در حال بارگذاری...</span>
+                                            </div>
+                                            <p class="mt-2">در حال بارگذاری کاربران...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ارسال سوال -->
+                <div class="card mt-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-question-circle"></i> ارسال سوال مسابقه
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">متن سوال:</label>
+                            <textarea id="questionText" class="form-control" rows="3" placeholder="متن سوال را وارد کنید..."></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">گزینه ۱:</label>
+                                <input type="text" class="form-control option-input" data-index="0" placeholder="گزینه اول">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">گزینه ۲:</label>
+                                <input type="text" class="form-control option-input" data-index="1" placeholder="گزینه دوم">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">گزینه ۳:</label>
+                                <input type="text" class="form-control option-input" data-index="2" placeholder="گزینه سوم">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">گزینه ۴:</label>
+                                <input type="text" class="form-control option-input" data-index="3" placeholder="گزینه چهارم">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">گزینه صحیح:</label>
+                                <select id="correctAnswer" class="form-select">
+                                    <option value="0">گزینه ۱</option>
+                                    <option value="1">گزینه ۲</option>
+                                    <option value="2">گزینه ۳</option>
+                                    <option value="3">گزینه ۴</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">زمان پاسخ‌دهی (ثانیه):</label>
+                                <input type="number" id="timeLimit" class="form-control" value="30" min="10" max="120">
+                            </div>
+                        </div>
+
+                        <button id="sendQuestionBtn" class="btn btn-success w-100">
+                            <i class="bi bi-send"></i> ارسال سوال به مسابقه
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- لاگ چت -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-chat-left-text"></i> تاریخچه چت
+                            <span class="badge bg-info float-end" id="chatMessagesCount">0 پیام</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chat-log" id="chatLog" style="max-height: 400px; overflow-y: auto;">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-chat-square-text display-4"></i>
+                                <p>هیچ پیامی وجود ندارد</p>
+                                <small>پیام‌های چت در اینجا نمایش داده می‌شوند</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">📋 لیست بینندگان</h5>
-                </div>
-                <div class="card-body">
-                    <div id="viewersList">
-                        <p class="text-muted">در حال بارگذاری...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
-        class StreamManager {
+        class AdminPanel {
             constructor() {
+                this.connection = null;
+                this.users = new Map();
+                this.chatMessages = [];
+                this.currentSettings = {};
                 this.statsInterval = null;
-                this.viewersInterval = null;
+                this.usersInterval = null;
                 this.initialize();
             }
 
-            initialize() {
+            async initialize() {
+                await this.initializeSignalR();
                 this.setupEventListeners();
-                this.startStatsUpdates();
-                this.loadViewers();
+                this.startAutoRefresh();
+            }
+
+            async initializeSignalR() {
+                this.connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/webrtcHub")
+                    .withAutomaticReconnect()
+                    .build();
+
+                this.setupHubListeners();
+
+                try {
+                    await this.connection.start();
+                    console.log("✅ Admin connected to hub");
+                    this.showAlert("اتصال به سرور برقرار شد", "success");
+                    await this.loadInitialData();
+                } catch (error) {
+                    console.error("❌ Connection failed:", error);
+                    this.showAlert("خطا در اتصال به سرور", "error");
+                }
+            }
+
+            setupHubListeners() {
+                // User management
+                this.connection.on("UserUpdated", (user) => {
+                    console.log("User updated:", user);
+                    this.updateUser(user);
+                });
+
+                // Chat management
+                this.connection.on("ChatMessageReceived", (message) => {
+                    console.log("Chat message received:", message);
+                    this.addChatMessage(message);
+                });
+
+                this.connection.on("ChatStatusUpdated", (enabled) => {
+                    console.log("Chat status updated:", enabled);
+                    this.updateChatStatus(enabled);
+                });
+
+                this.connection.on("HeartsStatusUpdated", (enabled) => {
+                    console.log("Hearts status updated:", enabled);
+                    this.updateHeartsStatus(enabled);
+                });
+
+                this.connection.on("ContestSettingsUpdated", (settings) => {
+                    console.log("Contest settings updated:", settings);
+                    this.updateContestSettings(settings);
+                });
+
+                // User connection events
+                this.connection.on("Connected", (connectionId, userInfo) => {
+                    console.log("User connected:", connectionId);
+                    this.loadUsers();
+                });
+
+                this.connection.onreconnecting(() => {
+                    console.log("🔄 Reconnecting...");
+                });
+
+                this.connection.onreconnected(() => {
+                    console.log("✅ Reconnected");
+                    this.loadInitialData();
+                });
             }
 
             setupEventListeners() {
-                $('#startStreamBtn').click(() => this.startStream());
-                $('#stopStreamBtn').click(() => this.stopStream());
+                // Toggle buttons
+                document.getElementById('toggleChatBtn').addEventListener('click', () => this.toggleChat());
+                document.getElementById('toggleHeartsBtn').addEventListener('click', () => this.toggleHearts());
+                document.getElementById('clearChatBtn').addEventListener('click', () => this.clearChat());
+                document.getElementById('refreshDataBtn').addEventListener('click', () => this.loadInitialData());
+
+                // Contest settings
+                document.getElementById('updateContestSettings').addEventListener('click', () => this.updateSettings());
+
+                // Quiz question
+                document.getElementById('sendQuestionBtn').addEventListener('click', () => this.sendQuestion());
             }
 
-            async startStream() {
-                const title = $('#streamTitle').val() || 'پخش زنده بدون عنوان';
+            startAutoRefresh() {
+                // Auto-refresh stats every 5 seconds
+                this.statsInterval = setInterval(() => {
+                    this.loadStats();
+                }, 5000);
+
+                // Auto-refresh users every 10 seconds
+                this.usersInterval = setInterval(() => {
+                    this.loadUsers();
+                }, 10000);
+            }
+
+            async loadInitialData() {
+                await this.loadUsers();
+                await this.loadStats();
+                await this.loadChatHistory();
+            }
+
+            async loadUsers() {
+                try {
+                    const response = await fetch('/Admin/GetUsers');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.users.clear();
+                        result.data.forEach(user => {
+                            this.users.set(user.connectionId, user);
+                        });
+
+                        this.updateUsersTable();
+                    } else {
+                        console.error("Error loading users:", result.error);
+                    }
+                } catch (error) {
+                    console.error("Error loading users:", error);
+                }
+            }
+
+            async loadStats() {
+                try {
+                    const response = await fetch('/Admin/GetStats');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.updateStatsDisplay(result.data);
+                    } else {
+                        console.error("Error loading stats:", result.error);
+                    }
+                } catch (error) {
+                    console.error("Error loading stats:", error);
+                }
+            }
+
+            async loadChatHistory() {
+                try {
+                    const streams = await this.connection.invoke("GetAvailableStreams");
+                    if (streams.length > 0) {
+                        const response = await fetch(`/Admin/GetChatHistory?streamId=${streams[0].streamId}`);
+                        const result = await response.json();
+
+                        if (result.success) {
+                            this.chatMessages = result.data;
+                            this.updateChatDisplay();
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error loading chat history:", error);
+                }
+            }
+
+            async toggleChat() {
+                const currentStatus = document.getElementById('toggleChatBtn').classList.contains('btn-success');
+                const newStatus = !currentStatus;
 
                 try {
-                    const response = await fetch('/Home/StartStream', {
+                    const response = await fetch('/Admin/ToggleChat', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ title: title })
+                        body: JSON.stringify({ enabled: newStatus })
                     });
 
                     const result = await response.json();
-
                     if (result.success) {
-                        this.showAlert('پخش زنده با موفقیت شروع شد', 'success');
-                        this.updateUI(true);
+                        this.showAlert(`چت ${newStatus ? 'فعال' : 'غیرفعال'} شد`, "success");
                     } else {
-                        this.showAlert(result.message, 'error');
+                        this.showAlert("خطا در تغییر وضعیت چت", "error");
                     }
                 } catch (error) {
-                    console.error('Error starting stream:', error);
-                    this.showAlert('خطا در شروع پخش زنده', 'error');
+                    console.error("Error toggling chat:", error);
+                    this.showAlert("خطا در تغییر وضعیت چت", "error");
                 }
             }
 
-            async stopStream() {
+            async toggleHearts() {
+                const currentStatus = document.getElementById('toggleHeartsBtn').classList.contains('btn-success');
+                const newStatus = !currentStatus;
+
                 try {
-                    const response = await fetch('/Home/StopStream', {
+                    const response = await fetch('/Admin/ToggleHearts', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                        }
+                        },
+                        body: JSON.stringify({ enabled: newStatus })
                     });
 
                     const result = await response.json();
-
                     if (result.success) {
-                        this.showAlert('پخش زنده با موفقیت متوقف شد', 'success');
-                        this.updateUI(false);
+                        this.showAlert(`قلب‌ها ${newStatus ? 'فعال' : 'غیرفعال'} شدند`, "success");
                     } else {
-                        this.showAlert(result.message, 'error');
+                        this.showAlert("خطا در تغییر وضعیت قلب‌ها", "error");
                     }
                 } catch (error) {
-                    console.error('Error stopping stream:', error);
-                    this.showAlert('خطا در توقف پخش زنده', 'error');
+                    console.error("Error toggling hearts:", error);
+                    this.showAlert("خطا در تغییر وضعیت قلب‌ها", "error");
                 }
             }
 
-            updateUI(isStreaming) {
-                $('#startStreamBtn').prop('disabled', isStreaming);
-                $('#stopStreamBtn').prop('disabled', !isStreaming);
+            async clearChat() {
+                if (!confirm("آیا از پاک کردن تاریخچه چت اطمینان دارید؟")) return;
 
-                if (isStreaming) {
-                    $('#streamStatus').text('زنده').removeClass('text-success').addClass('text-danger');
-                } else {
-                    $('#streamStatus').text('آفلاین').removeClass('text-danger').addClass('text-success');
-                }
-            }
-
-            startStatsUpdates() {
-                // به روزرسانی آمار هر 5 ثانیه
-                this.statsInterval = setInterval(() => this.updateStats(), 5000);
-                this.updateStats();
-            }
-
-            async updateStats() {
                 try {
-                    const response = await fetch('/Home/GetStreamStats');
-                    const stats = await response.json();
+                    const streams = await this.connection.invoke("GetAvailableStreams");
+                    if (streams.length > 0) {
+                        const response = await fetch('/Admin/ClearChatHistory', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ streamId: streams[0].streamId })
+                        });
 
-                    $('#viewerCount').text(stats.viewerCount);
-                    $('#serverTime').text(new Date().toLocaleTimeString('fa-IR'));
-
-                    if (stats.uptime) {
-                        $('#uptime').text(this.formatTime(stats.uptime));
+                        const result = await response.json();
+                        if (result.success) {
+                            this.chatMessages = [];
+                            this.updateChatDisplay();
+                            this.showAlert("تاریخچه چت پاک شد", "warning");
+                        } else {
+                            this.showAlert("خطا در پاک کردن چت", "error");
+                        }
+                    } else {
+                        this.showAlert("هیچ پخش فعالی برای پاک کردن چت وجود ندارد", "error");
                     }
                 } catch (error) {
-                    console.error('Error updating stats:', error);
+                    console.error("Error clearing chat:", error);
+                    this.showAlert("خطا در پاک کردن چت", "error");
                 }
             }
 
-            async loadViewers() {
+            async updateSettings() {
+                const settings = {
+                    ContestStartTime: new Date(document.getElementById('contestStartTime').value).toISOString(),
+                    InitialHearts: parseInt(document.getElementById('initialHearts').value),
+                    ContestTitle: document.getElementById('contestTitle').value
+                };
+
                 try {
-                    const response = await fetch('/api/Viewer/list');
-                    const data = await response.json();
-
-                    this.displayViewers(data.viewers);
+                    await this.connection.invoke("UpdateContestSettings", settings);
+                    this.showAlert("تنظیمات مسابقه به‌روزرسانی شد", "success");
                 } catch (error) {
-                    console.error('Error loading viewers:', error);
+                    console.error("Error updating settings:", error);
+                    this.showAlert("خطا در به‌روزرسانی تنظیمات", "error");
                 }
-
-                // به روزرسانی هر 10 ثانیه
-                this.viewersInterval = setInterval(() => this.loadViewers(), 10000);
             }
 
-            displayViewers(viewers) {
-                const container = $('#viewersList');
+            async sendQuestion() {
+                const questionText = document.getElementById('questionText').value;
+                const options = Array.from(document.querySelectorAll('.option-input')).map(input => input.value);
+                const correctAnswer = parseInt(document.getElementById('correctAnswer').value);
+                const timeLimit = parseInt(document.getElementById('timeLimit').value);
 
-                if (viewers.length === 0) {
-                    container.html('<p class="text-muted">هیچ بیننده‌ای آنلاین نیست</p>');
+                if (!questionText || options.some(opt => !opt)) {
+                    this.showAlert("لطفا تمام فیلدها را پر کنید", "error");
                     return;
                 }
 
-                const html = viewers.map(viewer => `
-                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
-                        <div>
-                            <strong>${viewer.name}</strong>
-                            <small class="text-muted d-block">${this.formatTime(viewer.watchTime)}</small>
+                const question = {
+                    Id: this.generateGuid(),
+                    Question: questionText,
+                    Options: options,
+                    CorrectAnswerIndex: correctAnswer,
+                    TimeLimit: timeLimit
+                };
+
+                try {
+                    const streams = await this.connection.invoke("GetAvailableStreams");
+                    if (streams.length === 0) {
+                        this.showAlert("هیچ پخش فعالی وجود ندارد", "error");
+                        return;
+                    }
+
+                    for (const stream of streams) {
+                        await this.connection.invoke("StartQuiz", question, stream.streamId);
+                    }
+
+                    this.showAlert("سوال با موفقیت ارسال شد", "success");
+                    this.clearQuestionForm();
+                } catch (error) {
+                    console.error("Error sending question:", error);
+                    this.showAlert("خطا در ارسال سوال", "error");
+                }
+            }
+
+            async kickUser(connectionId) {
+                if (!confirm("آیا از اخراج این کاربر اطمینان دارید؟")) return;
+
+                try {
+                    const response = await fetch('/Admin/KickUser', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ connectionId: connectionId })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        this.showAlert("کاربر با موفقیت اخراج شد", "success");
+                        this.users.delete(connectionId);
+                        this.updateUsersTable();
+                        this.loadStats();
+                    } else {
+                        this.showAlert("خطا در اخراج کاربر", "error");
+                    }
+                } catch (error) {
+                    console.error("Error kicking user:", error);
+                    this.showAlert("خطا در اخراج کاربر", "error");
+                }
+            }
+
+            updateUser(user) {
+                this.users.set(user.connectionId, user);
+                this.updateUsersTable();
+                this.loadStats();
+            }
+
+            updateUsersTable() {
+                const table = document.getElementById('usersTable');
+                const count = document.getElementById('usersCount');
+
+                if (this.users.size === 0) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-people display-4"></i>
+                                <p>هیچ کاربری یافت نشد</p>
+                            </td>
+                        </tr>
+                    `;
+                    count.textContent = "0 کاربر";
+                    return;
+                }
+
+                count.textContent = `${this.users.size} کاربر`;
+
+                table.innerHTML = Array.from(this.users.values()).map(user => `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="${user.avatarUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiMzMzMiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDExQzEzLjEwNDYgMTEgMTQgMTAuMTA0NiAxNCA5QzE0IDcuODk1NDMgMTMuMTA0NiA3IDEyIDdDMTAuODk1NCA3IDEwIDcuODk1NDMgMTAgOUMxMCAxMC4xMDQ2IDEwLjg5NTQgMTEgMTIgMTFaTTEyIDEzQzkuNzk1NzUgMTMgOCAxNC43OTU3IDggMTdIMTZDMTYgMTQuNzk1NyAxNC4yMDQyIDEzIDEyIDEzWiIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4KPC9zdmc+'}"
+                                     class="user-avatar me-3" alt="${user.name}">
+                                <div>
+                                    <strong>${this.escapeHtml(user.name)}</strong>
+                                    <br>
+                                    <small class="text-muted">${new Date(user.joinTime).toLocaleTimeString('fa-IR')}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <small class="text-muted">${user.connectionId.substring(0, 8)}...</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">${user.score}</span>
+                        </td>
+                        <td>
+                            <span class="badge ${user.hearts > 0 ? 'bg-danger' : 'bg-secondary'}">
+                                ${user.hearts} ❤️
+                            </span>
+                        </td>
+                        <td>
+                            ${user.isEliminated ?
+                                '<span class="badge bg-danger">حذف شده</span>' :
+                                '<span class="badge bg-success">فعال</span>'
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="adminPanel.kickUser('${user.connectionId}')">
+                                <i class="bi bi-person-x"></i> اخراج
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            updateStatsDisplay(stats) {
+                document.getElementById('onlineUsersCount').textContent = stats.onlineUsers;
+                document.getElementById('activeStreamsCount').textContent = stats.activeStreams;
+                document.getElementById('totalViewersCount').textContent = stats.totalViewers;
+
+                // Format uptime
+                const hours = Math.floor(stats.serverUptime.totalHours);
+                const minutes = Math.floor(stats.serverUptime.minutes);
+                document.getElementById('serverUptime').textContent =
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            }
+
+            addChatMessage(message) {
+                this.chatMessages.push(message);
+                if (this.chatMessages.length > 100) {
+                    this.chatMessages.shift();
+                }
+                this.updateChatDisplay();
+            }
+
+            updateChatDisplay() {
+                const chatLog = document.getElementById('chatLog');
+                const count = document.getElementById('chatMessagesCount');
+
+                count.textContent = `${this.chatMessages.length} پیام`;
+
+                if (this.chatMessages.length === 0) {
+                    chatLog.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-chat-square-text display-4"></i>
+                            <p>هیچ پیامی وجود ندارد</p>
+                            <small>پیام‌های چت در اینجا نمایش داده می‌شوند</small>
                         </div>
-                        <span class="badge bg-success">آنلاین</span>
+                    `;
+                    return;
+                }
+
+                chatLog.innerHTML = this.chatMessages.map(msg => `
+                    <div class="chat-message">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-primary">${this.escapeHtml(msg.senderName)}</strong>
+                                    <small class="text-muted">${new Date(msg.timestamp).toLocaleTimeString('fa-IR')}</small>
+                                </div>
+                                <div class="message-text">${this.escapeHtml(msg.message)}</div>
+                            </div>
+                        </div>
                     </div>
                 `).join('');
 
-                container.html(html);
+                chatLog.scrollTop = chatLog.scrollHeight;
             }
 
-            formatTime(timeSpan) {
-                const hours = Math.floor(timeSpan / 3600);
-                const minutes = Math.floor((timeSpan % 3600) / 60);
-                const seconds = timeSpan % 60;
+            updateChatStatus(enabled) {
+                const btn = document.getElementById('toggleChatBtn');
+                btn.classList.toggle('btn-success', enabled);
+                btn.classList.toggle('btn-danger', !enabled);
+                btn.innerHTML = `<i class="bi bi-chat-dots"></i> چت: ${enabled ? 'فعال' : 'غیرفعال'}`;
+            }
 
-                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            updateHeartsStatus(enabled) {
+                const btn = document.getElementById('toggleHeartsBtn');
+                btn.classList.toggle('btn-success', enabled);
+                btn.classList.toggle('btn-danger', !enabled);
+                btn.innerHTML = `<i class="bi bi-heart"></i> قلب: ${enabled ? 'فعال' : 'غیرفعال'}`;
+            }
+
+            updateContestSettings(settings) {
+                this.currentSettings = settings;
+                document.getElementById('contestStartTime').value = new Date(settings.contestStartTime).toISOString().slice(0, 16);
+                document.getElementById('initialHearts').value = settings.initialHearts;
+                document.getElementById('contestTitle').value = settings.contestTitle;
+            }
+
+            clearQuestionForm() {
+                document.getElementById('questionText').value = '';
+                document.querySelectorAll('.option-input').forEach(input => input.value = '');
+                document.getElementById('correctAnswer').value = '0';
+                document.getElementById('timeLimit').value = '30';
             }
 
             showAlert(message, type) {
-                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const alertClass = {
+                    'success': 'alert-success',
+                    'error': 'alert-danger',
+                    'warning': 'alert-warning'
+                }[type];
 
-                const alertHtml = `
-                    <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
-                         style="top: 20px; right: 20px; z-index: 1050; min-width: 300px;">
-                        ${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+                const alert = document.createElement('div');
+                alert.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+                alert.style.cssText = 'top: 20px; left: 20px; z-index: 1050; min-width: 300px;';
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
 
-                $('body').append(alertHtml);
+                document.body.appendChild(alert);
 
                 setTimeout(() => {
-                    $('.alert').alert('close');
+                    alert.remove();
                 }, 5000);
+            }
+
+            generateGuid() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            // Cleanup on page unload
+            destroy() {
+                if (this.statsInterval) {
+                    clearInterval(this.statsInterval);
+                }
+                if (this.usersInterval) {
+                    clearInterval(this.usersInterval);
+                }
+                if (this.connection) {
+                    this.connection.stop();
+                }
             }
         }
 
-        // راه‌اندازی هنگامی که صفحه کاملاً لود شد
-        $(document).ready(function() {
-            window.streamManager = new StreamManager();
+        // Initialize admin panel
+        let adminPanel;
+        document.addEventListener('DOMContentLoaded', function() {
+            adminPanel = new AdminPanel();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (adminPanel) {
+                adminPanel.destroy();
+            }
         });
     </script>
-}
+</body>
+</html>

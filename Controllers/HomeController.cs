@@ -61,6 +61,35 @@ namespace WebApplication1.Controllers
                 return Json(new StreamStats());
             }
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> KickUser(string connectionId)
+        {
+            try
+            {
+                await _hubContext.Clients.Client(connectionId).SendAsync("Kicked", "شما از سمت ادمین اخراج شدید");
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleChat(bool enabled)
+        {
+            try
+            {
+                await _hubContext.Clients.All.SendAsync("ChatStatusUpdated", enabled);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
     }
 
     // Extension method to access hub from context

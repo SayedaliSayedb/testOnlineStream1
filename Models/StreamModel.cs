@@ -10,7 +10,6 @@
         public bool IsLive { get; set; }
         public List<ViewerInfo> Viewers { get; set; } = new();
     }
-
     public class ViewerInfo
     {
         public string ConnectionId { get; set; } = string.Empty;

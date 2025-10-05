@@ -7,12 +7,12 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>پخش زنده مسابقه</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        @@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@@100;200;300;400;500;600;700;800;900&display=swap');
+        @@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
         :root {
             --primary-font: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,19 +25,24 @@
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             background: #000;
             color: #fff;
             font-family: var(--primary-font);
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
+            position: fixed;
         }
 
         .main-container {
             height: 100vh;
             width: 100vw;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: #000;
             overflow: hidden;
         }
@@ -60,30 +65,31 @@
         }
 
         .top-bar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 50;
+            position: fixed;
+            top: env(safe-area-inset-top, 10px);
+            right: 10px;
+            z-index: 100;
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: calc(100vw - 20px);
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .user-avatar {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -92,17 +98,17 @@
         .user-details {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
         }
 
         .user-name {
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             font-family: var(--primary-font);
         }
 
         .user-score {
-            font-size: 12px;
+            font-size: 11px;
             color: #ffd700;
             font-family: var(--primary-font);
         }
@@ -110,22 +116,22 @@
         .hearts-section {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: rgba(255, 0, 0, 0.2);
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 50px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .hearts-count {
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
             font-family: var(--primary-font);
         }
 
         .heart-icon {
             color: #ff3366;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -135,16 +141,16 @@
             }
 
         .chat-container {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 40vh;
-            z-index: 40;
+            height: 35vh;
+            max-height: 35vh;
+            z-index: 90;
             display: flex;
             flex-direction: column;
             background: transparent;
-            overflow: hidden;
             pointer-events: none;
         }
 
@@ -156,22 +162,23 @@
             height: 100%;
             background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
             pointer-events: none;
-            z-index: 41;
+            z-index: 91;
         }
 
         .chat-messages {
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            padding: 10px 20px 70px 20px;
-            max-height: 100%;
+            padding: 10px 15px 70px 15px;
             overflow-y: auto;
-            z-index: 42;
+            z-index: 92;
             pointer-events: auto;
+            max-height: calc(35vh - 80px);
         }
 
         .message {
-            padding: 8px 8px;
+            padding: 8px 12px;
             font-size: 14px;
             line-height: 1.4;
             color: rgba(255, 255, 255, 0.95);
@@ -185,6 +192,9 @@
             word-break: break-word;
             max-width: 85%;
             align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
         }
 
         @@keyframes messageSlide {
@@ -200,15 +210,16 @@
         }
 
         .chat-input-container {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
+            position: fixed;
+            bottom: env(safe-area-inset-bottom, 10px);
+            left: 10px;
+            right: 10px;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
-            z-index: 45;
+            z-index: 95;
             pointer-events: auto;
+            padding: 5px 0;
         }
 
         .chat-input {
@@ -235,12 +246,17 @@
                     color: rgba(255, 255, 255, 0.7);
                 }
 
+                .chat-input input:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
         .send-btn {
-            background: rgba(0, 123, 255, 0.8);
+            background: rgba(0, 123, 255, 0.9);
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             color: white;
             display: flex;
             align-items: center;
@@ -248,20 +264,35 @@
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
+            flex-shrink: 0;
         }
 
-            .send-btn:hover {
+            .send-btn:disabled {
+                background: rgba(108, 117, 125, 0.9);
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .send-btn i {
+                font-size: 20px;
+                position: relative;
+                left: -1px;
+            }
+
+            .send-btn:hover:not(:disabled) {
                 background: rgba(0, 123, 255, 1);
-                transform: scale(1.05);
+                transform: scale(1.08);
+                box-shadow: 0 6px 25px rgba(0, 123, 255, 0.6);
             }
 
         .floating-heart-btn {
-            background: rgba(255, 51, 102, 0.8);
+            background: linear-gradient(135deg, #ff3366, #ff6b9c);
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             color: white;
             display: flex;
             align-items: center;
@@ -269,37 +300,72 @@
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+            box-shadow: 0 4px 20px rgba(255, 51, 102, 0.4);
+            flex-shrink: 0;
         }
 
-            .floating-heart-btn:hover {
-                background: rgba(255, 51, 102, 1);
-                transform: scale(1.1);
+            .floating-heart-btn:disabled {
+                background: linear-gradient(135deg, #6c757d, #495057);
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             }
 
+            .floating-heart-btn i {
+                font-size: 22px;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            }
+
+            .floating-heart-btn:hover:not(:disabled) {
+                transform: scale(1.08);
+                box-shadow: 0 6px 25px rgba(255, 51, 102, 0.6);
+            }
+
+            .floating-heart-btn:active:not(:disabled) {
+                transform: scale(0.95);
+            }
+
+            .floating-heart-btn.pulse {
+                animation: heartPulse 0.6s ease;
+            }
+
+        @@keyframes heartPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
         #streamsListContainer {
-            position: absolute;
+            position: fixed;
             left: 0;
             bottom: 0;
             width: 100%;
-            z-index: 95;
+            z-index: 150; /* افزایش z-index برای نمایش در جلوی چت */
             display: flex;
             justify-content: center;
             pointer-events: auto;
             transition: transform 0.32s cubic-bezier(.22,.9,.28,1), opacity .24s ease;
-            transform: translateY(0);
-            opacity: 1;
+            transform: translateY(100%); /* ابتدا کاملاً مخفی */
+            opacity: 0;
             padding: 10px 12px;
             background: transparent;
         }
 
         .streams-box {
             width: min(1100px, calc(100% - 36px));
-            background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.45));
-            border: 1px solid rgba(255,255,255,0.06);
+            background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.7));
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px;
             padding: 8px;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(20px);
         }
 
         .streams-header {
@@ -317,13 +383,18 @@
         }
 
         .toggle-streams-btn {
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.1);
             border: none;
             color: #fff;
             cursor: pointer;
             padding: 6px;
             border-radius: 8px;
+            transition: all 0.3s ease;
         }
+
+            .toggle-streams-btn:hover {
+                background: rgba(255,255,255,0.2);
+            }
 
         .streams-horizontal {
             display: flex;
@@ -342,8 +413,9 @@
             overflow: hidden;
             flex: 0 0 auto;
             background: #0b0b0b;
-            border: 1px solid rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
             transition: transform .18s ease, box-shadow .18s ease;
+            cursor: pointer;
         }
 
             .stream-thumbnail:hover {
@@ -352,8 +424,8 @@
             }
 
             .stream-thumbnail.active {
-                border-color: rgba(78,161,255,0.16);
-                box-shadow: 0 12px 34px rgba(78,161,255,0.08)
+                border-color: rgba(78,161,255,0.5);
+                box-shadow: 0 12px 34px rgba(78,161,255,0.2)
             }
 
         .thumbnail-video {
@@ -383,67 +455,55 @@
             margin-top: 4px
         }
 
-        #streamsListContainer.collapsed {
-            transform: translateY(92%);
-            opacity: 0;
-            pointer-events: none;
+        #streamsListContainer.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
         }
 
         #revealStreamsBtn {
             position: fixed;
             left: 20px;
-            bottom: 100px;
+            bottom: 90px;
             z-index: 96;
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
-            background: linear-gradient(180deg, #161616, #0a0a0a);
-            border: 1px solid rgba(255,255,255,0.1);
-            display: none;
+            background: linear-gradient(135deg, #6c757d, #495057);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             color: #fff;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
             backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
-        @@media (max-width: 768px) {
-            #revealStreamsBtn {
-                width: 46px;
-                height: 46px;
-                left: 15px;
-                bottom: 80px;
+            #revealStreamsBtn i {
+                font-size: 20px;
             }
-        }
 
-        @@media (max-width: 480px) {
-            #revealStreamsBtn {
-                width: 44px;
-                height: 44px;
-                left: 12px;
-                bottom: 70px;
+            #revealStreamsBtn:hover {
+                transform: scale(1.08);
+                box-shadow: 0 8px 30px rgba(0,0,0,0.5);
             }
-        }
-
-        #revealStreamsBtn.show {
-            display: flex;
-        }
 
         .streams-horizontal::-webkit-scrollbar {
             height: 8px
         }
 
         .streams-horizontal::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.1);
             border-radius: 6px
         }
 
         #connectionStatus {
-            position: absolute;
-            top: 20px;
+            position: fixed;
+            top: env(safe-area-inset-top, 20px);
             left: 20px;
-            z-index: 50;
+            z-index: 100;
             background: rgba(0, 0, 0, 0.7);
             padding: 8px 15px;
             border-radius: 20px;
@@ -455,6 +515,14 @@
 
         .status-connected {
             color: #28a745;
+        }
+
+        .status-disconnected {
+            color: #dc3545;
+        }
+
+        .status-connecting {
+            color: #ffc107;
         }
 
         #emptyState {
@@ -523,72 +591,138 @@
                 background: rgba(255, 255, 255, 0.5);
             }
 
+        /* Quiz Overlay Styles */
+        #quizOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-card {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+        }
+
+        .quiz-timer {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .quiz-question {
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+            line-height: 1.6;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-option {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+            .quiz-option:hover {
+                background: rgba(255,255,255,0.2);
+                transform: translateY(-2px);
+            }
+
+            .quiz-option:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+        .quiz-result {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .result-correct {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+
+        .result-incorrect {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+
+        /* استایل‌های موبایل - بهبود یافته */
         @@media (max-width: 768px) {
             .chat-container {
-                height: 45vh;
+                height: 30vh;
+                max-height: 30vh;
             }
 
             .chat-messages {
-                padding: 8px 15px 60px 15px;
-            }
-            .chat-input-container {
-                bottom: 15px;
-                left: 15px;
-                right: 15px;
-            }
-
-            #revealStreamsBtn {
-                width: 46px;
-                height: 46px;
-                left: 15px;
-                bottom: 90px;
-            }
-        }
-
-        @@media (max-width: 480px) {
-            .chat-container {
-                height: 50vh;
+                padding: 8px 12px 60px 12px;
+                max-height: calc(30vh - 70px);
             }
 
             .chat-input-container {
-                bottom: 12px;
-                left: 12px;
-                right: 12px;
+                bottom: env(safe-area-inset-bottom, 8px);
+                left: 8px;
+                right: 8px;
             }
+
+            .send-btn,
+            .floating-heart-btn,
+            #revealStreamsBtn {
+                width: 48px;
+                height: 48px;
+            }
+
+                .send-btn i,
+                #revealStreamsBtn i {
+                    font-size: 18px;
+                }
+
+                .floating-heart-btn i {
+                    font-size: 20px;
+                }
 
             #revealStreamsBtn {
-                width: 44px;
-                height: 44px;
-                left: 12px;
-                bottom: 80px;
+                left: 15px;
+                bottom: 75px;
             }
 
-            .chat-container {
-                bottom: 60px;
-                height: 40vh;
-            }
-
-            .floating-heart-btn, .send-btn {
-                width: 40px;
-                height: 40px;
-            }
-
-            .chat-input input {
-                padding: 10px 14px;
-                font-size: 13px;
-            }
-
-            .message {
-                font-size: 13px;
-                padding: 8px 12px;
-            }
-        }
-
-        @@media (max-width: 768px) {
             .top-bar {
-                top: 10px;
-                right: 10px;
-                padding: 10px 15px;
+                top: env(safe-area-inset-top, 5px);
+                right: 5px;
+                padding: 6px 10px;
             }
 
             .user-avatar {
@@ -612,25 +746,9 @@
                 font-size: 18px;
             }
 
-            .chat-container {
-                /* قبل: bottom: 140px; height: 40vh; */
-                bottom: 0px; /* قرارگیری نزدیک‌تر به پایین روی موبایل هم */
-                height: 50vh;
-            }
-
-            .chat-input-container {
-                bottom: 15px;
-                left: 15px;
-                right: 15px;
-            }
-
-            .floating-heart-btn, .send-btn {
-                width: 44px;
-                height: 44px;
-            }
-
             .chat-input input {
                 padding: 12px 16px;
+                font-size: 16px;
             }
 
             .message {
@@ -639,32 +757,144 @@
                 max-width: 90%;
             }
 
-            #revealStreamsBtn {
-                position: fixed;
-                left: 20px;
-                bottom: 90px;
-                z-index: 96;
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                background: linear-gradient(180deg, #161616, #0a0a0a);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                display: none;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                color: #fff;
-                box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
-                backdrop-filter: blur(10px);
+            #streamsListContainer {
+                padding: 8px 10px;
             }
+
+            .streams-box {
+                width: calc(100% - 20px);
+            }
+
+            .stream-thumbnail {
+                min-width: 140px;
+                height: 85px;
+            }
+
+            .quiz-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .quiz-timer {
+                font-size: 2.5rem;
+            }
+
+            .quiz-question {
+                font-size: 1.1rem;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .chat-container {
+                height: 28vh;
+                max-height: 28vh;
+            }
+
+            .chat-messages {
+                padding: 6px 10px 55px 10px;
+                max-height: calc(28vh - 65px);
+            }
+
+            .chat-input-container {
+                bottom: env(safe-area-inset-bottom, 5px);
+                left: 5px;
+                right: 5px;
+            }
+
+            .send-btn,
+            .floating-heart-btn,
+            #revealStreamsBtn {
+                width: 44px;
+                height: 44px;
+            }
+
+                .send-btn i,
+                #revealStreamsBtn i {
+                    font-size: 17px;
+                }
+
+                .floating-heart-btn i {
+                    font-size: 19px;
+                }
+
+            #revealStreamsBtn {
+                left: 12px;
+                bottom: 65px;
+            }
+
+            .chat-input input {
+                padding: 10px 14px;
+                font-size: 16px;
+            }
+
+            .message {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+
+            .stream-thumbnail {
+                min-width: 120px;
+                height: 75px;
+            }
+
+            .stream-title {
+                font-size: 12px;
+            }
+
+            .stream-stats {
+                font-size: 10px;
+            }
+
+            .quiz-card {
+                padding: 1rem;
+            }
+
+            .quiz-timer {
+                font-size: 2rem;
+            }
+
+            .quiz-question {
+                font-size: 1rem;
+            }
+
+            .quiz-option {
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
+            }
+        }
+
+        @@media (max-width: 360px) {
+            .chat-container {
+                height: 26vh;
+                max-height: 26vh;
+            }
+
+            .chat-input-container {
+                bottom: env(safe-area-inset-bottom, 3px);
+            }
+
+            #revealStreamsBtn {
+                bottom: 60px;
+            }
+        }
+
+        @@supports(padding: max(0px)) {
+            .top-bar, .chat-input-container {
+                padding-left: max(10px, env(safe-area-inset-left));
+                padding-right: max(10px, env(safe-area-inset-right));
+            }
+        }
+
+        .chat-messages {
+            -webkit-overflow-scrolling: touch;
         }
     </style>
 </head>
 <body>
     <div class="main-container">
-        <div class="top-bar">
+        <div class="top-bar" style="transform: translate(-10px, 15px) !important;">
             <div class="user-info">
-                <img class="user-avatar" src="~/img/user.jpeg">
+                <img class="user-avatar" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiMzMzMiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDExQzEzLjEwNDYgMTEgMTQgMTAuMTA0NiAxNCA5QzE0IDcuODk1NDMgMTMuMTA0NiA3IDEyIDdDMTAuODk1NCA3IDEwIDcuODk1NDMgMTAgOUMxMCAxMC4xMDQ2IDEwLjg5NTQgMTEgMTIgMTFaTTEyIDEzQzkuNzk1NzUgMTMgOCAxNC43OTU3IDggMTdIMTZDMTYgMTQuNzk1NyAxNC4yMDQyIDEzIDEyIDEzWiIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4KPC9zdmc+">
                 <div class="user-details">
                     <div class="user-name">کاربر مسابقه</div>
                     <div class="user-score">امتیاز: 1250</div>
@@ -677,14 +907,12 @@
         </div>
 
         <div class="chat-container">
-            <div class="chat-gradient-overlay" style="trans"></div>
+            <div class="chat-gradient-overlay"></div>
             <div class="chat-messages" id="chatMessages"></div>
-            <div class="chat-input-container">
-
+            <div class="chat-input-container" style="transform: translateY(-10px) !important">
                 <div class="chat-input">
                     <button class="send-btn" id="sendMessage"><i class="bi bi-send"></i></button>
                     <input type="text" placeholder="پیام خود را بنویسید..." id="messageInput">
-
                 </div>
                 <button class="floating-heart-btn" id="floatingHeartButton">
                     <i class="bi bi-heart-fill"></i>
@@ -703,7 +931,7 @@
                         <i class="bi bi-collection-play"></i>
                         پخش‌های زنده فعال (<span id="streamsCount">0</span>)
                     </div>
-                    <button class="toggle-streams-btn" id="toggleStreamsList" aria-expanded="true" title="باز/بسته کردن لیست">
+                    <button class="toggle-streams-btn" id="toggleStreamsList" aria-expanded="false" title="بستن لیست">
                         <i class="bi bi-chevron-down" id="toggleIcon"></i>
                     </button>
                 </div>
@@ -714,8 +942,8 @@
 
         <button id="revealStreamsBtn" title="نمایش پخش‌ها"><i class="bi bi-chevron-up" style="font-size:18px"></i></button>
 
-        <div id="connectionStatus" class="status-connected">
-            <i class="bi bi-wifi"></i> متصل
+        <div id="connectionStatus" class="status-connecting" style="transform: translate(5px, 15px) !important;">
+            <i class="bi bi-wifi"></i> در حال اتصال...
         </div>
 
         <div id="emptyState" style="display:none;">
@@ -727,58 +955,83 @@
                 </button>
             </div>
         </div>
+
+        <div id="quizOverlay">
+            <div class="quiz-card">
+                <div class="quiz-header text-center mb-4">
+                    <h3 class="quiz-timer" id="quizTimer">30</h3>
+                    <h4 class="quiz-question" id="quizQuestion">سوال مسابقه</h4>
+                </div>
+
+                <div class="quiz-options" id="quizOptions">
+                    <!-- Options will be populated here -->
+                </div>
+
+                <div class="quiz-result" id="quizResult">
+                    <!-- Result will be shown here -->
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
-                (function () {
+        // مدیریت لیست استریم‌ها
+        (function () {
             const container = document.getElementById('streamsListContainer');
             const toggleBtn = document.getElementById('toggleStreamsList');
             const toggleIcon = document.getElementById('toggleIcon');
             const revealBtn = document.getElementById('revealStreamsBtn');
             const grid = document.getElementById('streamsGrid');
 
-            let collapsed = false;
+            let isVisible = false;
 
-            function setCollapsed(val) {
-                collapsed = !!val;
-                if (collapsed) {
-                    container.classList.add('collapsed');
+            function setVisibility(visible) {
+                isVisible = visible;
+                if (visible) {
+                    container.classList.add('visible');
                     toggleIcon.classList.remove('bi-chevron-down');
                     toggleIcon.classList.add('bi-chevron-up');
-                    revealBtn.classList.add('show');
+                    revealBtn.style.display = 'none';
+                    toggleBtn.setAttribute('title', 'بستن لیست');
                 } else {
-                    container.classList.remove('collapsed');
+                    container.classList.remove('visible');
                     toggleIcon.classList.remove('bi-chevron-up');
                     toggleIcon.classList.add('bi-chevron-down');
-                    revealBtn.classList.remove('show');
+                    revealBtn.style.display = 'flex';
+                    toggleBtn.setAttribute('title', 'باز کردن لیست');
                 }
             }
 
             toggleBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                setCollapsed(!collapsed);
+                setVisibility(false);
             });
 
             revealBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                setCollapsed(false);
+                setVisibility(true);
             });
 
             document.addEventListener('click', (e) => {
                 if (container.contains(e.target) || toggleBtn.contains(e.target) || revealBtn.contains(e.target)) return;
-                setCollapsed(true);
+                setVisibility(false);
             });
 
             grid.addEventListener('click', (e) => e.stopPropagation());
 
             // ابتدا لیست را مخفی کنیم
-            setCollapsed(true);
+            setVisibility(false);
         })();
 
+        // مدیریت دکمه قلب
         document.getElementById('floatingHeartButton').addEventListener('click', function () {
-            //const heartsCount = document.querySelector('.hearts-count');
-            //let count = parseInt(heartsCount.textContent);
-            //if (isNaN(count)) count = 0;
+            // افزودن انیمیشن پالس به دکمه قلب
+            this.classList.add('pulse');
+            setTimeout(() => {
+                this.classList.remove('pulse');
+            }, 600);
+
             for (let i = 0; i < 15; i++) {
                 createHeart();
             }
@@ -792,6 +1045,7 @@
             heart.style.left = `${x}px`;
             heart.style.bottom = '100px';
             document.querySelector('.main-container').appendChild(heart);
+
             const animation = heart.animate([
                 { transform: 'translateY(0) scale(0.5)', opacity: 1 },
                 { transform: `translateY(-${200 + Math.random() * 300}px) scale(1.5)`, opacity: 0 }
@@ -799,11 +1053,13 @@
                 duration: 1000 + Math.random() * 1200,
                 easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)'
             });
+
             animation.onfinish = () => {
                 heart.remove();
             };
         }
 
+        // مدیریت چت
         document.getElementById('sendMessage').addEventListener('click', sendMessage);
         document.getElementById('messageInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -815,23 +1071,41 @@
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
 
-            if (message) {
+            if (message && window.fullScreenViewer) {
+                window.fullScreenViewer.sendChatMessage(message);
+
+                // نمایش پیام محلی
                 const messagesContainer = document.getElementById('chatMessages');
                 const newMessage = document.createElement('div');
                 newMessage.classList.add('message');
                 newMessage.textContent = `شما: ${message}`;
-
                 messagesContainer.appendChild(newMessage);
 
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                // اسکرول به پایین با تاخیر برای اطمینان از رندر
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 50);
+
                 input.value = '';
+
+                // فوکوس مجدد به input
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
             }
         }
 
+        // پیام‌های اولیه
+        const initialMessages = [
+            "خوش آمدید! مسابقه به زودی شروع می‌شود.",
+            "نظرتون درباره مسابقه چیه؟",
+            "چه کسی برنده خواهد شد؟",
+            "امیدوارم تیم مورد علاقم برنده بشه!",
+            "لطفا قوانین را رعایت کنید."
+        ];
+
         function simulateInitialMessages() {
-
             const messagesContainer = document.getElementById('chatMessages');
-
             initialMessages.forEach(message => {
                 const messageElement = document.createElement('div');
                 messageElement.classList.add('message');
@@ -842,11 +1116,882 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            simulateInitialMessages();
+        // مدیریت تغییر orientation
+        function handleOrientationChange() {
+            const isPortrait = window.innerHeight > window.innerWidth;
+
+            // به روزرسانی ارتفاع المان‌ها
+            document.querySelector('.main-container').style.height = window.innerHeight + 'px';
+            document.querySelector('.main-container').style.width = window.innerWidth + 'px';
+
+            // به روزرسانی موقعیت المان‌ها
+            setTimeout(() => {
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }, 100);
+        }
+
+        // کلاس اصلی برای مدیریت پخش زنده
+        class FullScreenViewer {
+            constructor() {
+                this.activeStreams = new Map();
+                this.currentMainStream = null;
+                this.connection = null;
+                this.currentQuiz = null;
+                this.quizTimer = null;
+                this.userInfo = {
+                    name: "کاربر مسابقه",
+                    score: 1250,
+                    hearts: 150,
+                    connectionId: null
+                };
+                this.chatEnabled = true; // وضعیت فعال/غیرفعال بودن چت
+
+                this.initialize();
+            }
+                    displayChatHistory(history) {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '';
+
+            history.forEach(message => {
+                this.displayChatMessage(message);
+            });
+
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 50);
+        }
+
+        clearChatMessages() {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '';
+        }
+            async initialize() {
+                this.initializeElements();
+                await this.initializeSignalR();
+                this.setupEventListeners();
+                this.setupHeartReceivers();
+
+                console.log("🚀 FullScreen Viewer initialized");
+            }
+
+            initializeElements() {
+                this.mainVideo = document.getElementById('mainVideo');
+                this.streamsGrid = document.getElementById('streamsGrid');
+                this.streamsListContainer = document.getElementById('streamsListContainer');
+                this.streamsCount = document.getElementById('streamsCount');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.emptyState = document.getElementById('emptyState');
+                this.toggleStreamsList = document.getElementById('toggleStreamsList');
+                this.retryButton = document.getElementById('retryButton');
+
+                console.log("✅ Elements initialized");
+            }
+
+            async initializeSignalR() {
+                try {
+                    this.connection = new signalR.HubConnectionBuilder()
+                        .withUrl("/webrtcHub")
+                        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+                        .build();
+
+                    this.setupHubListeners();
+
+                    await this.connection.start();
+                    console.log("✅ SignalR connection established");
+                    this.updateConnectionStatus('connected', 'اتصال برقرار شد');
+
+                    // دریافت اطلاعات کاربر
+                    this.userInfo.connectionId = this.connection.connectionId;
+
+                    // درخواست لیست استریم‌ها پس از اتصال
+                    await this.requestStreamList();
+
+                } catch (error) {
+                    console.error("❌ SignalR connection failed:", error);
+                    this.updateConnectionStatus('error', 'خطا در اتصال');
+                    this.showRetryButton();
+                }
+            }
+
+            setupHubListeners() {
+                        this.connection.on("ChatHistory", (history) => {
+            this.displayChatHistory(history);
+        });
+
+        this.connection.on("ChatHistoryCleared", () => {
+            this.clearChatMessages();
+        });
+                // رویداد دریافت لیست استریم‌ها
+                this.connection.on("StreamListUpdated", (streams) => {
+                    console.log("📋 Received stream list:", streams);
+                    this.handleStreamListUpdate(streams);
+                });
+
+                // رویداد عضویت در استریم
+                this.connection.on("JoinedStream", (streamInfo) => {
+                    console.log("✅ Joined stream:", streamInfo);
+                    this.handleJoinedStream(streamInfo);
+                });
+
+                // رویداد پایان استریم
+                this.connection.on("StreamEnded", (streamId) => {
+                    console.log("⏹ Stream ended:", streamId);
+                    this.removeStream(streamId);
+                });
+
+                // رویدادهای WebRTC
+                this.connection.on("ReceiveSignal", (signal) => {
+                    this.handleSignal(signal);
+                });
+
+                // رویدادهای چت
+                this.connection.on("ChatMessageReceived", (message) => {
+                    this.displayChatMessage(message);
+                });
+
+                this.connection.on("ChatStatusUpdated", (enabled) => {
+                    this.updateChatStatus(enabled);
+                });
+
+                // رویدادهای قلب
+                this.connection.on("HeartReceived", (heartData) => {
+                    this.handleHeartReceived(heartData);
+                });
+
+                this.connection.on("HeartsStatusUpdated", (enabled) => {
+                    this.updateHeartsStatus(enabled);
+                });
+
+                // رویدادهای مسابقه
+                this.connection.on("QuizStarted", (quizInfo) => {
+                    this.showQuiz(quizInfo);
+                });
+
+                this.connection.on("QuizEnded", (quizInfo) => {
+                    this.hideQuiz();
+                });
+
+                this.connection.on("QuizAnswerResult", (isCorrect, message) => {
+                    this.showQuizResult(isCorrect, message);
+                });
+
+                this.connection.on("Eliminated", (message) => {
+                    this.showEliminationMessage(message);
+                });
+
+                // به‌روزرسانی اطلاعات کاربر
+                this.connection.on("UserUpdated", (user) => {
+                    this.updateUserInfo(user);
+                });
+
+                this.connection.on("ContestSettingsUpdated", (settings) => {
+                    console.log("Contest settings updated:", settings);
+                });
+
+                // مدیریت اتصال مجدد
+                this.connection.onreconnecting(() => {
+                    console.log("🔄 Reconnecting...");
+                    this.updateConnectionStatus('reconnecting', 'در حال اتصال مجدد...');
+                });
+
+                this.connection.onreconnected(() => {
+                    console.log("✅ Reconnected");
+                    this.updateConnectionStatus('connected', 'اتصال برقرار شد');
+                    this.requestStreamList();
+                });
+
+                this.connection.onclose(() => {
+                    console.log("❌ Connection closed");
+                    this.updateConnectionStatus('error', 'اتصال قطع شد');
+                });
+            }
+
+            setupEventListeners() {
+                this.retryButton?.addEventListener('click', () => this.retryConnection());
+
+                // کلیدهای صفحه‌کلید
+                document.addEventListener('keydown', (e) => {
+                    switch (e.key) {
+                        case ' ':
+                            e.preventDefault();
+                            this.toggleStreamsListVisibility();
+                            break;
+                        case 'Escape':
+                            this.exitViewerMode();
+                            break;
+                    }
+                });
+
+                // به‌روزرسانی اطلاعات کاربر در UI
+                this.updateUserInfo(this.userInfo);
+            }
+
+            setupHeartReceivers() {
+                // دریافت قلب از سایر کاربران
+                if (this.connection) {
+                    this.connection.on("HeartReceived", (heartData) => {
+                        this.createHeartAnimation();
+                    });
+                }
+            }
+
+            async requestStreamList() {
+                try {
+                    if (this.connection?.state === 'Connected') {
+                        await this.connection.invoke("RequestStreamList");
+                        console.log("📨 Requested stream list from server");
+                    } else {
+                        console.warn("⚠️ Cannot request stream list - connection not ready");
+                    }
+                } catch (error) {
+                    console.error("❌ Error requesting stream list:", error);
+                }
+            }
+
+            handleStreamListUpdate(streams) {
+                if (!streams || streams.length === 0) {
+                    this.showEmptyState();
+                    return;
+                }
+
+                this.hideEmptyState();
+                console.log(`🔄 Processing ${streams.length} stream(s)`);
+
+                // پاکسازی استریم‌های قدیمی که دیگر فعال نیستند
+                this.cleanupInactiveStreams(streams);
+
+                // اضافه کردن استریم‌های جدید
+                streams.forEach(stream => {
+                    if (!this.activeStreams.has(stream.streamId)) {
+                        this.addStream(stream);
+                    }
+                });
+
+                this.updateStreamsCount();
+                this.updateStreamsListVisibility();
+            }
+
+            addStream(streamInfo) {
+                console.log("➕ Adding stream:", streamInfo.streamId);
+
+                // ایجاد المان استریم
+                const streamElement = this.createStreamElement(streamInfo);
+                this.streamsGrid.appendChild(streamElement);
+
+                // ذخیره اطلاعات استریم
+                this.activeStreams.set(streamInfo.streamId, {
+                    element: streamElement,
+                    peerConnection: null,
+                    stream: null,
+                    info: streamInfo,
+                    isConnected: false
+                });
+
+                // اگر اولین استریم است، آن را به عنوان اصلی تنظیم و متصل شو
+                if (!this.currentMainStream) {
+                    console.log("🎯 Setting as main stream:", streamInfo.streamId);
+                    this.setMainStream(streamInfo.streamId);
+                }
+
+                // اتصال به استریم
+                this.connectToStream(streamInfo);
+            }
+
+            createStreamElement(streamInfo) {
+                const streamElement = document.createElement('div');
+                streamElement.className = 'stream-thumbnail';
+                streamElement.id = `stream-${streamInfo.streamId}`;
+
+                streamElement.innerHTML = `
+                    <div class="thumbnail-container">
+                        <div class="thumbnail-placeholder" style="width:100%;height:60px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;color:#666;font-size:12px;">
+                            <i class="bi bi-camera-video"></i>
+                            <div style="margin-right:8px;">در حال اتصال...</div>
+                        </div>
+                    </div>
+                    <div class="stream-info">
+                        <div class="stream-title">${this.escapeHtml(streamInfo.title)}</div>
+                        <div class="stream-stats">
+                            <span class="viewer-count">${streamInfo.viewerCount} بیننده</span>
+                            <span class="live-indicator">● زنده</span>
+                        </div>
+                    </div>
+                `;
+
+                // کلیک برای انتخاب به عنوان استریم اصلی
+                streamElement.addEventListener('click', () => {
+                    this.setMainStream(streamInfo.streamId);
+                });
+
+                return streamElement;
+            }
+
+            async connectToStream(streamInfo) {
+                try {
+                    console.log(`🔗 Connecting to stream: ${streamInfo.streamId}`);
+                    await this.connection.invoke("JoinStream", streamInfo.streamId, this.userInfo.name);
+                } catch (error) {
+                    console.error(`❌ Error joining stream ${streamInfo.streamId}:`, error);
+                }
+            }
+
+            handleJoinedStream(streamInfo) {
+                console.log(`🎬 Starting WebRTC for stream: ${streamInfo.streamId}`);
+                this.initiateWebRTCConnection(streamInfo.streamId, streamInfo.streamerConnectionId);
+            }
+
+            async initiateWebRTCConnection(streamId, streamerConnectionId) {
+                try {
+                    const configuration = {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    };
+
+                    const peerConnection = new RTCPeerConnection(configuration);
+
+                    // مدیریت trackهای دریافتی
+                    peerConnection.ontrack = (event) => {
+                        console.log(`🎬 Received track for stream: ${streamId}`, event.track.kind);
+
+                        if (event.streams && event.streams[0]) {
+                            const remoteStream = event.streams[0];
+                            this.handleStreamReceived(streamId, remoteStream);
+                        }
+                    };
+
+                    // مدیریت ICE candidates
+                    peerConnection.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            this.connection.invoke("SendSignal", streamerConnectionId, "ice-candidate", JSON.stringify(event.candidate));
+                        }
+                    };
+
+                    // مدیریت وضعیت اتصال
+                    peerConnection.onconnectionstatechange = () => {
+                        console.log(`🔗 Connection state for ${streamId}:`, peerConnection.connectionState);
+                    };
+
+                    // ایجاد و ارسال offer
+                    const offer = await peerConnection.createOffer({
+                        offerToReceiveAudio: true,
+                        offerToReceiveVideo: true
+                    });
+
+                    await peerConnection.setLocalDescription(offer);
+                    await this.connection.invoke("SendSignal", streamerConnectionId, "offer", JSON.stringify(offer));
+
+                    // ذخیره اتصال
+                    const streamData = this.activeStreams.get(streamId);
+                    if (streamData) {
+                        streamData.peerConnection = peerConnection;
+                        streamData.isConnected = true;
+                    }
+
+                    console.log(`✅ WebRTC initiated for: ${streamId}`);
+
+                } catch (error) {
+                    console.error(`❌ WebRTC initiation failed for ${streamId}:`, error);
+                }
+            }
+
+            handleStreamReceived(streamId, remoteStream) {
+                const streamData = this.activeStreams.get(streamId);
+                if (!streamData) return;
+
+                streamData.stream = remoteStream;
+
+                // به روزرسانی thumbnail
+                this.updateThumbnailVideo(streamId, remoteStream);
+
+                // اگر این استریم اصلی است، ویدیوی اصلی را تنظیم کن
+                if (streamId === this.currentMainStream) {
+                    this.setMainVideoStream(remoteStream);
+                }
+
+                console.log(`✅ Stream ready: ${streamId}`);
+            }
+
+            updateThumbnailVideo(streamId, remoteStream) {
+                const streamData = this.activeStreams.get(streamId);
+                if (!streamData) return;
+
+                const container = streamData.element.querySelector('.thumbnail-container');
+                const placeholder = streamData.element.querySelector('.thumbnail-placeholder');
+
+                if (placeholder && container) {
+                    // حذف placeholder و اضافه کردن ویدیو
+                    placeholder.remove();
+
+                    const video = document.createElement('video');
+                    video.className = 'thumbnail-video';
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    video.muted = true;
+                    video.srcObject = remoteStream;
+
+                    video.onloadedmetadata = () => {
+                        console.log(`✅ Thumbnail metadata loaded: ${streamId}`);
+                    };
+
+                    container.appendChild(video);
+                }
+            }
+
+            setMainVideoStream(remoteStream) {
+                if (!this.mainVideo) return;
+
+                this.mainVideo.srcObject = remoteStream;
+
+                // تلاش برای پخش ویدیو
+                const playVideo = () => {
+                    this.mainVideo.play().catch(error => {
+                        console.log("⏳ Waiting for video to be ready...");
+                        setTimeout(playVideo, 500);
+                    });
+                };
+
+                playVideo();
+
+                console.log("✅ Main video stream set");
+            }
+
+            setMainStream(streamId) {
+                if (!this.activeStreams.has(streamId)) {
+                    console.error("❌ Stream not found:", streamId);
+                    return;
+                }
+
+                console.log(`🎯 Setting main stream to: ${streamId}`);
+
+                // حذف انتخاب از استریم قبلی
+                if (this.currentMainStream) {
+                    const previousStream = this.activeStreams.get(this.currentMainStream);
+                    if (previousStream) {
+                        previousStream.element.classList.remove('active');
+                    }
+                }
+
+                // تنظیم استریم جدید
+                this.currentMainStream = streamId;
+                const currentStream = this.activeStreams.get(streamId);
+                currentStream.element.classList.add('active');
+
+                // تنظیم ویدیوی اصلی اگر داده موجود است
+                if (currentStream.stream) {
+                    this.setMainVideoStream(currentStream.stream);
+                } else {
+                    console.log("⏳ Waiting for stream data...");
+                    this.mainVideo.srcObject = null;
+                }
+            }
+
+            handleSignal(signal) {
+                try {
+                    const { senderConnectionId, type, data } = signal;
+
+                    // پیدا کردن استریم بر اساس streamerConnectionId
+                    let targetStreamId = null;
+                    for (let [streamId, streamData] of this.activeStreams) {
+                        if (streamData.info.streamerConnectionId === senderConnectionId) {
+                            targetStreamId = streamId;
+                            break;
+                        }
+                    }
+
+                    if (!targetStreamId) {
+                        console.log("❌ No stream found for signal from:", senderConnectionId);
+                        return;
+                    }
+
+                    const streamData = this.activeStreams.get(targetStreamId);
+                    if (!streamData?.peerConnection) {
+                        console.log("⚠️ No peer connection for stream:", targetStreamId);
+                        return;
+                    }
+
+                    const peerConnection = streamData.peerConnection;
+
+                    switch (type) {
+                        case 'answer':
+                            console.log(`📥 Received answer for: ${targetStreamId}`);
+                            const answer = JSON.parse(data);
+                            peerConnection.setRemoteDescription(answer);
+                            break;
+
+                        case 'ice-candidate':
+                            const candidate = JSON.parse(data);
+                            peerConnection.addIceCandidate(candidate);
+                            break;
+                    }
+
+                } catch (error) {
+                    console.error("❌ Error handling signal:", error);
+                }
+            }
+
+            cleanupInactiveStreams(activeStreams) {
+                const activeStreamIds = activeStreams.map(s => s.streamId);
+                const streamsToRemove = [];
+
+                for (let streamId of this.activeStreams.keys()) {
+                    if (!activeStreamIds.includes(streamId)) {
+                        streamsToRemove.push(streamId);
+                    }
+                }
+
+                streamsToRemove.forEach(streamId => this.removeStream(streamId));
+            }
+
+            removeStream(streamId) {
+                const streamData = this.activeStreams.get(streamId);
+                if (streamData) {
+                    if (streamData.peerConnection) {
+                        streamData.peerConnection.close();
+                    }
+                    if (streamData.element) {
+                        streamData.element.remove();
+                    }
+                    this.activeStreams.delete(streamId);
+
+                    // اگر استریم حذف شده اصلی بود، استریم دیگری را انتخاب کن
+                    if (this.currentMainStream === streamId) {
+                        this.currentMainStream = null;
+                        if (this.activeStreams.size > 0) {
+                            const firstStreamId = Array.from(this.activeStreams.keys())[0];
+                            this.setMainStream(firstStreamId);
+                        } else {
+                            this.showEmptyState();
+                        }
+                    }
+
+                    this.updateStreamsCount();
+                    this.updateStreamsListVisibility();
+
+                    console.log(`🗑️ Removed stream: ${streamId}`);
+                }
+            }
+
+            // مدیریت چت
+            async sendChatMessage(message) {
+                if (!this.currentMainStream || !this.chatEnabled) return;
+
+                try {
+                    await this.connection.invoke("SendChatMessage", message, this.currentMainStream);
+                } catch (error) {
+                    console.error("❌ Error sending chat message:", error);
+                }
+            }
+
+            displayChatMessage(message) {
+                // اگر چت غیرفعال است، پیام نمایش داده نمی‌شود
+                if (!this.chatEnabled) return;
+
+                const messagesContainer = document.getElementById('chatMessages');
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('message');
+                newMessage.textContent = `${message.senderName}: ${message.message}`;
+                messagesContainer.appendChild(newMessage);
+
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 50);
+            }
+
+            updateChatStatus(enabled) {
+                this.chatEnabled = enabled;
+                const messageInput = document.getElementById('messageInput');
+                const sendButton = document.getElementById('sendMessage');
+
+                if (enabled) {
+                    messageInput.placeholder = "پیام خود را بنویسید...";
+                    messageInput.disabled = false;
+                    sendButton.disabled = false;
+
+                    // نمایش پیام‌های موجود
+                    const messagesContainer = document.getElementById('chatMessages');
+                    messagesContainer.style.display = 'flex';
+                } else {
+                    messageInput.placeholder = "چت غیرفعال است";
+                    messageInput.disabled = true;
+                    sendButton.disabled = true;
+
+                    // مخفی کردن تمام پیام‌ها
+                    const messagesContainer = document.getElementById('chatMessages');
+                    messagesContainer.style.display = 'none';
+                }
+            }
+
+            // مدیریت قلب‌ها
+            async sendHeart() {
+                if (!this.currentMainStream) return;
+
+                try {
+                    await this.connection.invoke("SendHeart", this.currentMainStream);
+                    this.createHeartAnimation();
+                } catch (error) {
+                    console.error("❌ Error sending heart:", error);
+                }
+            }
+
+            handleHeartReceived(heartData) {
+                this.createHeartAnimation();
+            }
+
+            createHeartAnimation() {
+                for (let i = 0; i < 15; i++) {
+                    setTimeout(() => {
+                        createHeart();
+                    }, i * 100);
+                }
+            }
+
+            updateHeartsStatus(enabled) {
+                const heartButton = document.getElementById('floatingHeartButton');
+                if (enabled) {
+                    heartButton.disabled = false;
+                } else {
+                    heartButton.disabled = true;
+                }
+            }
+
+            // مدیریت مسابقه
+            showQuiz(quizInfo) {
+                const overlay = document.getElementById('quizOverlay');
+                const question = document.getElementById('quizQuestion');
+                const options = document.getElementById('quizOptions');
+                const timer = document.getElementById('quizTimer');
+
+                this.currentQuiz = quizInfo;
+
+                // Set question
+                question.textContent = quizInfo.question.question;
+
+                // Create options
+                options.innerHTML = quizInfo.question.options.map((option, index) => `
+                    <button class="quiz-option" data-index="${index}" onclick="fullScreenViewer.submitAnswer(${index})">
+                        ${this.escapeHtml(option)}
+                    </button>
+                `).join('');
+
+                // Start timer
+                this.startQuizTimer(quizInfo.question.timeLimit, timer);
+
+                // Show overlay
+                overlay.style.display = 'flex';
+            }
+
+            startQuizTimer(duration, timerElement) {
+                let timeLeft = duration;
+                timerElement.textContent = timeLeft;
+
+                this.quizTimer = setInterval(() => {
+                    timeLeft--;
+                    timerElement.textContent = timeLeft;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(this.quizTimer);
+                        this.hideQuiz();
+                    }
+                }, 1000);
+            }
+
+            async submitAnswer(answerIndex) {
+                if (!this.currentQuiz) return;
+
+                try {
+                    await this.connection.invoke("SubmitQuizAnswer", this.currentQuiz.id, answerIndex);
+
+                    // Disable all options
+                    document.querySelectorAll('.quiz-option').forEach(btn => {
+                        btn.disabled = true;
+                    });
+                } catch (error) {
+                    console.error("Error submitting answer:", error);
+                }
+            }
+
+            showQuizResult(isCorrect, message) {
+                const result = document.getElementById('quizResult');
+                result.innerHTML = message;
+                result.className = `quiz-result ${isCorrect ? 'result-correct' : 'result-incorrect'}`;
+                result.style.display = 'block';
+
+                setTimeout(() => {
+                    this.hideQuiz();
+                }, 3000);
+            }
+
+            hideQuiz() {
+                const overlay = document.getElementById('quizOverlay');
+                overlay.style.display = 'none';
+
+                if (this.quizTimer) {
+                    clearInterval(this.quizTimer);
+                }
+
+                this.currentQuiz = null;
+            }
+
+            showEliminationMessage(message) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger position-fixed';
+                alert.style.cssText = 'top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 300; min-width: 300px; text-align: center;';
+                alert.innerHTML = `
+                    <h4>${message}</h4>
+                    <p>شما می‌توانید مسابقه را تماشا کنید اما نمی‌توانید در آن شرکت کنید.</p>
+                `;
+
+                document.body.appendChild(alert);
+
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
+            }
+
+            // به‌روزرسانی اطلاعات کاربر
+            updateUserInfo(user) {
+                if (user.connectionId === this.userInfo.connectionId) {
+                    this.userInfo = { ...this.userInfo, ...user };
+
+                    // Update UI
+                    const userName = document.querySelector('.user-name');
+                    const userScore = document.querySelector('.user-score');
+                    const heartsCount = document.querySelector('.hearts-count');
+
+                    if (userName) userName.textContent = this.userInfo.name;
+                    if (userScore) userScore.textContent = `امتیاز: ${this.userInfo.score}`;
+                    if (heartsCount) heartsCount.textContent = this.userInfo.hearts;
+                }
+            }
+
+            // متدهای کمکی
+            showEmptyState() {
+                if (this.emptyState) this.emptyState.style.display = 'flex';
+                if (this.streamsListContainer) this.streamsListContainer.style.display = 'none';
+            }
+
+            hideEmptyState() {
+                if (this.emptyState) this.emptyState.style.display = 'none';
+                if (this.streamsListContainer) this.streamsListContainer.style.display = 'block';
+            }
+
+            updateStreamsCount() {
+                if (this.streamsCount) {
+                    this.streamsCount.textContent = this.activeStreams.size;
+                }
+            }
+
+            updateStreamsListVisibility() {
+                if (!this.streamsListContainer) return;
+
+                if (this.activeStreams.size <= 1) {
+                    this.streamsListContainer.style.display = 'none';
+                } else {
+                    this.streamsListContainer.style.display = 'block';
+                }
+            }
+
+            toggleStreamsListVisibility() {
+                const container = document.getElementById('streamsListContainer');
+                const revealBtn = document.getElementById('revealStreamsBtn');
+
+                if (container.classList.contains('visible')) {
+                    container.classList.remove('visible');
+                    revealBtn.style.display = 'flex';
+                } else {
+                    container.classList.add('visible');
+                    revealBtn.style.display = 'none';
+                }
+            }
+
+            updateConnectionStatus(status, text) {
+                if (this.connectionStatus) {
+                    this.connectionStatus.textContent = text;
+                    this.connectionStatus.className = `status-${status}`;
+
+                    // Update icon based on status
+                    const icon = this.connectionStatus.querySelector('i');
+                    if (icon) {
+                        switch (status) {
+                            case 'connected':
+                                icon.className = 'bi bi-wifi';
+                                break;
+                            case 'error':
+                                icon.className = 'bi bi-wifi-off';
+                                break;
+                            case 'connecting':
+                            case 'reconnecting':
+                                icon.className = 'bi bi-wifi';
+                                break;
+                        }
+                    }
+                }
+            }
+
+            showRetryButton() {
+                if (this.retryButton) {
+                    this.retryButton.style.display = 'block';
+                }
+            }
+
+            async retryConnection() {
+                this.updateConnectionStatus('connecting', 'در حال اتصال مجدد...');
+                this.retryButton.style.display = 'none';
+
+                try {
+                    await this.initializeSignalR();
+                } catch (error) {
+                    console.error("Retry failed:", error);
+                    this.showRetryButton();
+                }
+            }
+
+            exitViewerMode() {
+                if (confirm('آیا می‌خواهید از حالت تمام‌صفحه خارج شوید؟')) {
+                    window.location.href = '/';
+                }
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        }
+
+        // راه‌اندازی اصلی
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("🎬 Starting FullScreen Viewer...");
+            handleOrientationChange();
+
+            // اضافه کردن event listeners برای تغییر سایز و orientation
+            window.addEventListener('resize', handleOrientationChange);
+            window.addEventListener('orientationchange', handleOrientationChange);
+
+            // راه‌اندازی مدیریت‌کننده اصلی
+            window.fullScreenViewer = new FullScreenViewer();
+
+            // به‌روزرسانی مدیریت قلب برای استفاده از SignalR
+            document.getElementById('floatingHeartButton').addEventListener('click', function() {
+                if (window.fullScreenViewer) {
+                    window.fullScreenViewer.sendHeart();
+                }
+
+                // انیمیشن محلی
+                this.classList.add('pulse');
+                setTimeout(() => {
+                    this.classList.remove('pulse');
+                }, 600);
+            });
         });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <script src="~/js/fullscreen-viewer.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using WebApplication1.Hubs;
+using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
 {
@@ -25,7 +26,7 @@ namespace WebApplication1.Controllers
             {
                 var viewer = new ViewerInfo
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    ConnectionId = Guid.NewGuid().ToString(),
                     Name = request.Name ?? "بیننده ناشناس",
                     JoinTime = DateTime.UtcNow,
                     IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown"
@@ -38,7 +39,7 @@ namespace WebApplication1.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    ViewerId = viewer.Id,
+                    ViewerId = viewer.ConnectionId,
                     Message = "خوش آمدید! شما به پخش زنده پیوستید."
                 });
             }
@@ -54,7 +55,7 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                var viewer = _viewers.FirstOrDefault(v => v.Id == request.ViewerId);
+                var viewer = _viewers.FirstOrDefault(v => v.ConnectionId == request.ViewerId);
                 if (viewer != null)
                 {
                     _viewers.Remove(viewer);
@@ -75,7 +76,7 @@ namespace WebApplication1.Controllers
         {
             var viewers = _viewers.Select(v => new
             {
-                v.Id,
+                v.ConnectionId,
                 v.Name,
                 v.JoinTime,
                 WatchTime = DateTime.UtcNow - v.JoinTime
@@ -122,13 +123,7 @@ namespace WebApplication1.Controllers
         public string ViewerId { get; set; } = string.Empty;
     }
 
-    public class ViewerInfo
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public DateTime JoinTime { get; set; }
-        public string IPAddress { get; set; } = string.Empty;
-    }
+    
 
     public class ChatMessageRequest
     {
