@@ -13,13 +13,45 @@ namespace WebApplication1.Hubs
         private static readonly ConcurrentDictionary<string, UserInfo> _users = new();
         private static readonly ConcurrentDictionary<string, QuizInfo> _activeQuizzes = new();
         private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
+        private static readonly ConcurrentDictionary<string, DateTime> _streamHealth = new();
         private static readonly DateTime _serverStartTime = DateTime.UtcNow;
 
+        // اصلاح تایمر - بدون readonly
+        private static Timer _healthCheckTimer;
+        private const int MAX_VIEWERS_PER_STREAM = 200;
+        private const int HEALTH_CHECK_INTERVAL = 30000;
         // Admin controls
         private static bool _chatEnabled = true;
         private static bool _heartsEnabled = true;
         private static ContestSettings _contestSettings = new();
+        static WebRTCHub()
+        {
+            _healthCheckTimer = new Timer(HealthCheckCallback, null, HEALTH_CHECK_INTERVAL, HEALTH_CHECK_INTERVAL);
+        }
+        private static void HealthCheckCallback(object state)
+        {
+            var now = DateTime.UtcNow;
+            var deadStreams = new List<string>();
 
+            foreach (var stream in _streamHealth)
+            {
+                if ((now - stream.Value).TotalMinutes > 2)
+                {
+                    deadStreams.Add(stream.Key);
+                }
+            }
+
+            foreach (var deadStream in deadStreams)
+            {
+                // رفع خطای TryRemove با استفاده از pattern صحیح
+                if (_activeStreams.TryRemove(deadStream, out var removedStream))
+                {
+                    // منطق پاکسازی برای استریم حذف شده
+                }
+                _streamHealth.TryRemove(deadStream, out _);
+                _chatHistory.TryRemove(deadStream, out _);
+            }
+        }
         public override async Task OnConnectedAsync()
         {
             var userInfo = new UserInfo
@@ -36,11 +68,11 @@ namespace WebApplication1.Hubs
             _users[Context.ConnectionId] = userInfo;
 
             await Clients.Caller.SendAsync("Connected", Context.ConnectionId, userInfo);
-
             await Clients.Caller.SendAsync("ContestSettingsUpdated", _contestSettings);
             await Clients.Caller.SendAsync("ChatStatusUpdated", _chatEnabled);
             await Clients.Caller.SendAsync("HeartsStatusUpdated", _heartsEnabled);
 
+            // ارسال لیست استریم‌های موجود
             var streams = GetAvailableStreams();
             await Clients.Caller.SendAsync("StreamListUpdated", streams);
 
@@ -49,6 +81,7 @@ namespace WebApplication1.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
+            // رفع خطا با استفاده از pattern صحیح
             if (_userStreams.TryRemove(Context.ConnectionId, out var streamId))
             {
                 if (_activeStreams.TryRemove(streamId, out var stream))
@@ -63,9 +96,10 @@ namespace WebApplication1.Hubs
                         }
                         await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-
+                        // لاگ خطا
+                        Console.WriteLine($"Error in OnDisconnectedAsync: {ex.Message}");
                     }
                 }
             }
@@ -93,7 +127,7 @@ namespace WebApplication1.Hubs
             var streamInfo = new StreamInfo
             {
                 StreamId = streamId,
-                StreamerConnectionId = Context.ConnectionId,
+                StreamerConnectionId = Context.ConnectionId, // 🔥 اینجا تنظیم می‌شود
                 Title = title,
                 StartTime = DateTime.UtcNow,
                 IsLive = true,
@@ -103,27 +137,18 @@ namespace WebApplication1.Hubs
 
             _activeStreams[streamId] = streamInfo;
             _userStreams[Context.ConnectionId] = streamId;
-
-            // Initialize chat history for this stream
+            _streamHealth[streamId] = DateTime.UtcNow;
             _chatHistory[streamId] = new List<ChatMessage>();
 
             await Groups.AddToGroupAsync(Context.ConnectionId, streamId);
-            await Clients.Caller.SendAsync("StreamStarted", streamId);
+
+            // 🔥 به همه بیننده‌های موجود در این استریم اطلاع بده که استریمر آنلاین شد
+            await Clients.Group(streamId).SendAsync("StreamerConnected", streamId);
+
+            await Clients.All.SendAsync("StreamStarted", streamInfo);
             await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
 
             return streamId;
-        }
-
-        // متد جدید برای دریافت آمار
-        public AdminStats GetAdminStats()
-        {
-            return new AdminStats
-            {
-                OnlineUsers = _users.Count,
-                ActiveStreams = _activeStreams.Count,
-                TotalViewers = _streamViewers.Count,
-                ServerUptime = DateTime.UtcNow - _serverStartTime
-            };
         }
         public async Task StopStreaming()
         {
@@ -140,37 +165,127 @@ namespace WebApplication1.Hubs
 
                     // Remove chat history for this stream
                     _chatHistory.TryRemove(streamId, out _);
+                    _streamHealth.TryRemove(streamId, out _);
 
                     await Clients.All.SendAsync("StreamListUpdated", GetAvailableStreams());
                 }
             }
         }
+        // متد جدید برای دریافت آمار
+        public AdminStats GetAdminStats()
+        {
+            return new AdminStats
+            {
+                OnlineUsers = _users.Count,
+                ActiveStreams = _activeStreams.Count,
+                TotalViewers = _streamViewers.Count,
+                ServerUptime = DateTime.UtcNow - _serverStartTime
+            };
+        }
+        // اضافه کردن این متد به کلاس WebRTCHub
+        private static void CleanupInactiveStreams()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var streamsToRemove = new List<string>();
 
+                foreach (var stream in _streamHealth)
+                {
+                    // اگر استریم بیش از 5 دقیقه غیرفعال بوده
+                    if ((now - stream.Value).TotalMinutes > 5)
+                    {
+                        streamsToRemove.Add(stream.Key);
+                    }
+                }
+
+                foreach (var streamId in streamsToRemove)
+                {
+                    if (_activeStreams.TryRemove(streamId, out var streamInfo))
+                    {
+                        Console.WriteLine($"Removed inactive stream: {streamId}");
+                    }
+                    _streamHealth.TryRemove(streamId, out _);
+                    _chatHistory.TryRemove(streamId, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CleanupInactiveStreams: {ex.Message}");
+            }
+        }
         public async Task JoinStream(string streamId, string viewerName = "بیننده")
         {
             if (_activeStreams.TryGetValue(streamId, out var stream))
             {
+                // بررسی محدودیت تعداد بینندگان
+                if (stream.Viewers.Count >= MAX_VIEWERS_PER_STREAM)
+                {
+                    await Clients.Caller.SendAsync("Error", "ظرفیت این استریم تکمیل است");
+                    return;
+                }
+
                 await Groups.AddToGroupAsync(Context.ConnectionId, streamId);
                 _streamViewers[Context.ConnectionId] = streamId;
+
+                // دریافت User-Agent از درخواست HTTP
+                var httpContext = Context.GetHttpContext();
+                var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
 
                 var viewer = new ViewerInfo
                 {
                     ConnectionId = Context.ConnectionId,
                     Name = viewerName,
                     JoinTime = DateTime.UtcNow,
-                    IPAddress = Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown"
+                    IPAddress = httpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown",
+                    UserAgent = userAgent
                 };
 
                 stream.Viewers.Add(viewer);
                 stream.ViewerCount = stream.Viewers.Count;
 
-                // Send chat history to the new viewer
+                // به‌روزرسانی سلامت استریم
+                _streamHealth[streamId] = DateTime.UtcNow;
+
+                // ارسال تاریخچه چت - فقط 50 پیام آخر
                 if (_chatHistory.TryGetValue(streamId, out var history))
                 {
-                    await Clients.Caller.SendAsync("ChatHistory", history);
+                    var recentHistory = history.TakeLast(50).ToList();
+                    await Clients.Caller.SendAsync("ChatHistory", recentHistory);
                 }
 
-                await Clients.Caller.SendAsync("JoinedStream", stream);
+                // 🔥 تغییر مهم: ارسال اطلاعات کامل استریمر به بیننده
+                var streamInfoWithStreamer = new
+                {
+                    stream.StreamId,
+                    stream.Title,
+                    stream.StartTime,
+                    stream.IsLive,
+                    stream.ViewerCount,
+                    StreamerConnectionId = stream.StreamerConnectionId, // 🔥 این خط مهم است
+                    HasStreamer = !string.IsNullOrEmpty(stream.StreamerConnectionId)
+                };
+
+                await Clients.Caller.SendAsync("JoinedStream", streamInfoWithStreamer);
+
+                // 🔥 اگر استریمر آنلاین است، WebRTC signaling را شروع کن
+                if (!string.IsNullOrEmpty(stream.StreamerConnectionId))
+                {
+                    try
+                    {
+                        await Clients.Client(stream.StreamerConnectionId).SendAsync("ViewerJoinedNotify", stream.StreamId, Context.ConnectionId);
+                        Console.WriteLine($"🎯 Notified streamer {stream.StreamerConnectionId} about new viewer {Context.ConnectionId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Failed to notify streamer: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"⏳ Streamer not available for stream {streamId}, viewer {Context.ConnectionId} joined waiting");
+                }
+
                 await Clients.OthersInGroup(streamId).SendAsync("ViewerJoined", viewer);
                 await UpdateStreamStats(streamId);
             }
@@ -179,7 +294,16 @@ namespace WebApplication1.Hubs
                 await Clients.Caller.SendAsync("Error", "استریم مورد نظر پیدا نشد");
             }
         }
-
+        public async Task RequestStreamerConnection(string streamId)
+        {
+            if (_activeStreams.TryGetValue(streamId, out var stream) &&
+                !string.IsNullOrEmpty(stream.StreamerConnectionId))
+            {
+                // به استریمر اطلاع بده که بیننده درخواست connection دارد
+                await Clients.Client(stream.StreamerConnectionId)
+                    .SendAsync("ViewerRequestedConnection", Context.ConnectionId, streamId);
+            }
+        }
         // Chat methods
         public async Task SendChatMessage(string message, string streamId)
         {

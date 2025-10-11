@@ -9,11 +9,11 @@ namespace WebApplication1.Controllers
     [Route("api/[controller]")]
     public class ViewerController : ControllerBase
     {
-        private readonly IHubContext<StreamHub> _hubContext;
+        private readonly IHubContext<WebRTCHub> _hubContext;
         private readonly ILogger<ViewerController> _logger;
         private static readonly List<ViewerInfo> _viewers = new();
 
-        public ViewerController(IHubContext<StreamHub> hubContext, ILogger<ViewerController> logger)
+        public ViewerController(IHubContext<WebRTCHub> hubContext, ILogger<ViewerController> logger)
         {
             _hubContext = hubContext;
             _logger = logger;
